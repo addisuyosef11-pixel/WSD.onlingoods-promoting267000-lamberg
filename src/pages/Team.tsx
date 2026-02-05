@@ -202,7 +202,7 @@ const Team = () => {
   }, [user, profile]);
 
   const referralCode = (profile as any)?.referral_code || 'GENERATING...';
-  const referralLink = `https://WSD.onlingoods/promoting267000/lamberg.vercel.app/signup?ref=${referralCode}`;
+  const referralLink = `https://wsd-onlingoods-promoting267000-lamb.vercel.app/signup?ref=${referralCode}`;
 
   const generateReferralCodeIfNeeded = async () => {
     if (!user?.id) return;
