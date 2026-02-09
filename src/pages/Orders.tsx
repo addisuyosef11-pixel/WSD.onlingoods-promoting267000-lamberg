@@ -152,13 +152,13 @@ const Orders = () => {
       // Get VIP level info
       const { data: vipInfo } = await supabase
         .from('vip_levels')
-        .select('name, price, image_url')
+        .select('name, price, image_url, cycle_days, daily_income')
         .eq('id', vipLevel)
         .single();
 
       const price = vipInfo?.price || Math.abs(tx.amount);
-      // Calculate daily income (9% of price)
-      const dailyIncomeAmount = Math.round(price * 0.09);
+      const cycleDays = vipInfo?.cycle_days || 60;
+      const dailyIncomeAmount = vipInfo?.daily_income || Math.round(price * 0.09);
 
       // Check if can claim (24 hours have passed since last claim for this specific product)
       const lastClaimAt = claimsMap.get(tx.id) || null;
@@ -169,7 +169,7 @@ const Orders = () => {
         vipLevel,
         name: vipInfo?.name || `VIP-${vipLevel}`,
         price,
-        cycleDays: 44,
+        cycleDays,
         dailyIncome: dailyIncomeAmount,
         createDate: new Date(tx.created_at).toLocaleDateString('en-GB'),
         lastClaimAt,

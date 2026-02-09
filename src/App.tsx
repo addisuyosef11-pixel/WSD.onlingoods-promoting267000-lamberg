@@ -18,6 +18,7 @@ import TransactionHistory from "./pages/TransactionHistory";
 import Settings from "./pages/Settings";
 import CustomerService from "./pages/CustomerService";
 import NotFound from "./pages/NotFound";
+import Announcements from "./pages/Announcements";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/service" element={<CustomerService />} />
               <Route path="/vip/:levelId" element={<VipDetail />} />
+              <Route path="/announcements" element={<Announcements />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
@@ -53,3 +55,4 @@ const App = () => (
 );
 
 export default App;
+

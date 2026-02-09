@@ -26,7 +26,7 @@ const CustomerService = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const telegramLinks = [
-    { label: t('Official Support'), url: 'https://t.me/Tiktokshoponline_suport', handle: '@DSW_Support' },
+    { label: t('Official Support'), url: 'https://t.me/DSW_Support', handle: '@DSW_Support' },
     { label: t('Public Channel'), url: 'https://t.me/etonlinejob1', handle: 'DSW Channel' },
     { label: t('Discussion Group'), url: 'https://t.me/+Jihv4uEOv0o0M2U0', handle: 'DSW Group' },
   ];

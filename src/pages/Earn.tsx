@@ -95,7 +95,7 @@ const Earn = () => {
   };
 
   const handleDepositSubmitted = () => {
-    setSuccessMessage('Deposit submitted! Awaiting admin approval.');
+    setSuccessMessage('Deposit submitted! Awaiting admin approval for 15-20 minutes.');
     setShowSuccessModal(true);
   };
 

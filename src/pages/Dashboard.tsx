@@ -9,6 +9,7 @@ import { WithdrawModal } from '@/components/WithdrawModal';
 import { GiftModal } from '@/components/GiftModal';
 import { SuccessModal } from '@/components/SuccessModal';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
+import { TelegramModal } from '@/components/TelegramModal';
 import { ActionButtons } from '@/components/ActionButtons';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import VipCarousel from '@/components/VipCarousel';
@@ -43,6 +44,7 @@ const Dashboard = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [hasCompletedVipLevel, setHasCompletedVipLevel] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [showTelegram, setShowTelegram] = useState(false);
 
   // Show announcement on login
   useEffect(() => {
@@ -251,7 +253,15 @@ const Dashboard = () => {
 
       <AnnouncementModal
         isOpen={showAnnouncement}
-        onClose={() => setShowAnnouncement(false)}
+        onClose={() => {
+          setShowAnnouncement(false);
+          setShowTelegram(true);
+        }}
+      />
+
+      <TelegramModal
+        isOpen={showTelegram}
+        onClose={() => setShowTelegram(false)}
       />
     </div>
   );
