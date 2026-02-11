@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { Users, UserPlus, Gift, Copy, Share2, Star, RefreshCw, Trophy, CreditCard } from 'lucide-react';
+import { Users, UserPlus, Gift, Copy, Share2, Star, RefreshCw, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
+import { TeamMemberCard } from '@/components/TeamMemberCard';
 
 interface TeamMember {
   id: string;
@@ -18,6 +19,7 @@ interface TeamMember {
   current_vip_level: number | null;
   has_made_deposit: boolean;
   has_made_first_deposit: boolean;
+  bonus_claimed: boolean;
 }
 
 const Team = () => {
@@ -30,6 +32,7 @@ const Team = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
@@ -43,11 +46,11 @@ const Team = () => {
   }, [user, loading, navigate]);
 
   const fetchTeamData = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !profile) return;
     setIsLoading(true);
 
     try {
-      // Find all profiles where referred_by = current user's user_id
+      // Fetch team members (profiles where referred_by = current user's auth id)
       const { data: members, error } = await supabase
         .from('profiles')
         .select('id, name, phone, created_at, current_vip_level, has_made_deposit, has_made_first_deposit')
@@ -56,18 +59,39 @@ const Team = () => {
 
       if (error) throw error;
 
+      // Fetch referral records to check bonus_paid status
+      const { data: referrals, error: refError } = await supabase
+        .from('referrals')
+        .select('referred_id, bonus_paid')
+        .eq('referrer_id', profile.id);
+
+      if (refError) throw refError;
+
+      // Create a map of referred_id -> bonus_paid
+      const bonusMap: Record<string, boolean> = {};
+      if (referrals) {
+        referrals.forEach(r => {
+          bonusMap[r.referred_id] = r.bonus_paid ?? false;
+        });
+      }
+
       if (members && members.length > 0) {
         let earnings = 0;
         let active = 0;
         let pending = 0;
 
         const processed: TeamMember[] = members.map(m => {
-          if (m.has_made_first_deposit) {
+          const bonusClaimed = bonusMap[m.id] ?? false;
+          
+          if (bonusClaimed) {
             earnings += 145;
+          }
+          
+          if (m.has_made_first_deposit || m.has_made_deposit) {
             active++;
-          } else if (m.has_made_deposit) {
-            active++;
-          } else {
+          }
+          
+          if (!m.has_made_first_deposit) {
             pending++;
           }
 
@@ -79,6 +103,7 @@ const Team = () => {
             current_vip_level: m.current_vip_level || 0,
             has_made_deposit: m.has_made_deposit || false,
             has_made_first_deposit: m.has_made_first_deposit || false,
+            bonus_claimed: bonusClaimed,
           };
         });
 
@@ -98,8 +123,43 @@ const Team = () => {
   };
 
   useEffect(() => {
-    fetchTeamData();
-  }, [user]);
+    if (user && profile) {
+      fetchTeamData();
+    }
+  }, [user, profile]);
+
+  const handleClaimBonus = async (memberId: string) => {
+    if (!user?.id || claimingId) return;
+    setClaimingId(memberId);
+
+    try {
+      const { data, error } = await (supabase.rpc as any)('claim_referral_bonus', {
+        p_referrer_user_id: user.id,
+        p_referred_profile_id: memberId,
+      });
+
+      if (error) throw error;
+
+      if (data === true) {
+        setSuccessMessage(t('145 ETB bonus claimed to withdrawable balance!'));
+        setIsError(false);
+        setShowSuccessModal(true);
+        fireConfetti();
+        await fetchTeamData();
+      } else {
+        setSuccessMessage(t('Unable to claim bonus. Please try again.'));
+        setIsError(true);
+        setShowSuccessModal(true);
+      }
+    } catch (error: any) {
+      console.error('Error claiming bonus:', error);
+      setSuccessMessage(t('Error claiming bonus'));
+      setIsError(true);
+      setShowSuccessModal(true);
+    } finally {
+      setClaimingId(null);
+    }
+  };
 
   const referralCode = (profile as any)?.referral_code || 'LOADING';
   const referralLink = `https://tiktal.lovable.app/signup?ref=${referralCode}`;
@@ -145,14 +205,6 @@ const Team = () => {
         copyReferralLink();
       }
     }
-  };
-
-  const maskPhone = (phone: string) => {
-    if (!phone || phone.length < 6) return phone;
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length < 9) return phone;
-    const lastNine = cleaned.slice(-9);
-    return '+251' + lastNine.slice(0, 2) + '***' + lastNine.slice(-2);
   };
 
   if (loading) {
@@ -277,54 +329,12 @@ const Team = () => {
               </span>
             </div>
             {teamMembers.map((member) => (
-              <div
+              <TeamMemberCard
                 key={member.id}
-                className="p-4 bg-card rounded-xl border border-border shadow-sm flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    member.has_made_first_deposit 
-                      ? 'bg-green-100' 
-                      : member.has_made_deposit 
-                        ? 'bg-orange-100' 
-                        : 'bg-muted'
-                  }`}>
-                    {member.has_made_first_deposit ? (
-                      <Trophy className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <UserPlus className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">{member.name}</p>
-                      {(member.current_vip_level ?? 0) > 0 && (
-                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                          VIP {member.current_vip_level}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {maskPhone(member.phone)} • {new Date(member.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    member.has_made_first_deposit 
-                      ? 'bg-green-100 text-green-700' 
-                      : member.has_made_deposit
-                        ? 'bg-orange-100 text-orange-700'
-                        : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {member.has_made_first_deposit 
-                      ? `+145 ETB ✓` 
-                      : member.has_made_deposit
-                        ? t('Deposited')
-                        : t('No deposit')}
-                  </span>
-                </div>
-              </div>
+                member={member}
+                claimingId={claimingId}
+                onClaim={handleClaimBonus}
+              />
             ))}
           </div>
         )}

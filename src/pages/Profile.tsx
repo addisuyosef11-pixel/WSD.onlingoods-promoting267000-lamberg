@@ -100,6 +100,13 @@ const Profile = () => {
   const fetchDailyIncome = async () => {
     if (!user) return;
 
+    // Trigger automatic income transfers via edge function
+    try {
+      await supabase.functions.invoke('transfer-income');
+    } catch (e) {
+      console.log('Income transfer check:', e);
+    }
+
     const { data } = await supabase
       .from('user_daily_income')
       .select('*')
@@ -115,6 +122,9 @@ const Profile = () => {
         last_yesterday_claim_at: data.last_yesterday_claim_at,
       });
     }
+
+    // Refresh profile to get updated withdrawable balance
+    await refreshProfile();
   };
 
   useEffect(() => {
