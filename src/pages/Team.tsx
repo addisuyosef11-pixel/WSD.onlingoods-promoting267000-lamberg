@@ -4,12 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { Users, UserPlus, Gift, Copy, Share2, Star, RefreshCw, CreditCard } from 'lucide-react';
+import { Users, UserPlus, Copy, Share2, RefreshCw, CheckCircle, Clock, ChevronRight, Flag, Facebook, Instagram, Send, QrCode, Phone, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
-import { TeamMemberCard } from '@/components/TeamMemberCard';
+import QRCode from 'react-qr-code';
+import teamImage from '@/assets/team-mem.png';
 
 interface TeamMember {
   id: string;
@@ -33,10 +34,14 @@ const Team = () => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [stats, setStats] = useState({
     totalMembers: 0,
     activeMembers: 0,
-    pendingBonuses: 0
+    pendingBonuses: 0,
+    earnedCredits: 0
   });
 
   useEffect(() => {
@@ -50,7 +55,6 @@ const Team = () => {
     setIsLoading(true);
 
     try {
-      // Fetch team members (profiles where referred_by = current user's auth id)
       const { data: members, error } = await supabase
         .from('profiles')
         .select('id, name, phone, created_at, current_vip_level, has_made_deposit, has_made_first_deposit')
@@ -59,7 +63,6 @@ const Team = () => {
 
       if (error) throw error;
 
-      // Fetch referral records to check bonus_paid status
       const { data: referrals, error: refError } = await supabase
         .from('referrals')
         .select('referred_id, bonus_paid')
@@ -67,7 +70,6 @@ const Team = () => {
 
       if (refError) throw refError;
 
-      // Create a map of referred_id -> bonus_paid
       const bonusMap: Record<string, boolean> = {};
       if (referrals) {
         referrals.forEach(r => {
@@ -79,26 +81,28 @@ const Team = () => {
         let earnings = 0;
         let active = 0;
         let pending = 0;
+        let earned = 0;
 
         const processed: TeamMember[] = members.map(m => {
           const bonusClaimed = bonusMap[m.id] ?? false;
           
           if (bonusClaimed) {
             earnings += 145;
+            earned++;
           }
           
           if (m.has_made_first_deposit || m.has_made_deposit) {
             active++;
           }
           
-          if (!m.has_made_first_deposit) {
+          if (!bonusClaimed && m.has_made_first_deposit) {
             pending++;
           }
 
           return {
             id: m.id,
             name: m.name || 'New User',
-            phone: m.phone || '',
+            phone: m.phone || '09XXXXXXXX',
             created_at: m.created_at,
             current_vip_level: m.current_vip_level || 0,
             has_made_deposit: m.has_made_deposit || false,
@@ -109,11 +113,16 @@ const Team = () => {
 
         setTeamMembers(processed);
         setTeamEarnings(earnings);
-        setStats({ totalMembers: processed.length, activeMembers: active, pendingBonuses: pending });
+        setStats({ 
+          totalMembers: processed.length, 
+          activeMembers: active, 
+          pendingBonuses: pending,
+          earnedCredits: earned 
+        });
       } else {
         setTeamMembers([]);
         setTeamEarnings(0);
-        setStats({ totalMembers: 0, activeMembers: 0, pendingBonuses: 0 });
+        setStats({ totalMembers: 0, activeMembers: 0, pendingBonuses: 0, earnedCredits: 0 });
       }
     } catch (error: any) {
       console.error('Error fetching team data:', error);
@@ -141,19 +150,19 @@ const Team = () => {
       if (error) throw error;
 
       if (data === true) {
-        setSuccessMessage(t('145 ETB bonus claimed to withdrawable balance!'));
+        setSuccessMessage('145 ETB bonus claimed successfully!');
         setIsError(false);
         setShowSuccessModal(true);
         fireConfetti();
         await fetchTeamData();
       } else {
-        setSuccessMessage(t('Unable to claim bonus. Please try again.'));
+        setSuccessMessage('Unable to claim bonus. Please try again.');
         setIsError(true);
         setShowSuccessModal(true);
       }
     } catch (error: any) {
       console.error('Error claiming bonus:', error);
-      setSuccessMessage(t('Error claiming bonus'));
+      setSuccessMessage('Error claiming bonus');
       setIsError(true);
       setShowSuccessModal(true);
     } finally {
@@ -162,20 +171,20 @@ const Team = () => {
   };
 
   const referralCode = (profile as any)?.referral_code || 'LOADING';
-  const referralLink = `https://tiktal.lovable.app/signup?ref=${referralCode}`;
+  const referralLink = `https://wsd-onlingoods-promoting267000-lamb.vercel.app/signup?ref=${referralCode}`;
 
   const fireConfetti = () => {
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.3 },
-      colors: ['#ff69b4', '#ff1493', '#ff6347', '#ffd700', '#00ff00', '#00bfff', '#9400d3']
+      colors: ['#ff0000', '#dc2626', '#ef4444', '#f87171', '#fee2e2']
     });
   };
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
-    setSuccessMessage(t('Referral link copied!'));
+    setSuccessMessage('✨ Your unique referral link copied! Share it now and start earning!');
     setIsError(false);
     setShowSuccessModal(true);
     fireConfetti();
@@ -183,158 +192,374 @@ const Team = () => {
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(referralCode);
-    setSuccessMessage(t('Referral code copied!'));
+    setCopiedCode(true);
+    setSuccessMessage('✅ Referral code copied! Share it with your friends!');
     setIsError(false);
     setShowSuccessModal(true);
+    setTimeout(() => setCopiedCode(false), 2000);
     fireConfetti();
   };
 
-  const shareReferralLink = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: t('Join my team and earn 145 ETB!'),
-          text: `${t('Use my referral code')} ${referralCode} ${t('when signing up')}`,
-          url: referralLink,
-        });
-      } else {
-        copyReferralLink();
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        copyReferralLink();
-      }
+  const shareOnSocial = (platform: string) => {
+    let shareUrl = '';
+    const text = `🚀 Join me on this amazing platform and earn BIG! Use my unique referral code: ${referralCode} to get 5,000 ETB bonus instantly! Don't miss out on this opportunity to earn passive income. 💰\n\n👉 Sign up here: ${referralLink}\n\n#EarnMoney #PassiveIncome #Ethiopia #WorkFromHome`;
+    const url = referralLink;
+
+    switch(platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+        break;
+      case 'instagram':
+        navigator.clipboard.writeText(text);
+        setSuccessMessage('📱 Text copied! Paste it on your Instagram story or bio!');
+        setIsError(false);
+        setShowSuccessModal(true);
+        return;
     }
+    
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const formatPhoneNumber = (phone: string) => {
+    if (!phone || phone === '09XXXXXXXX') return '09XXXXXXXX';
+    // Format as +251 XX XXX XXXX
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 9) {
+      return `+251 ${cleaned.slice(0,2)} ${cleaned.slice(2,5)} ${cleaned.slice(5)}`;
+    }
+    return phone;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Spinner size="lg" />
       </div>
     );
   }
 
+  const successfulInvites = teamMembers.filter(m => m.has_made_first_deposit).length;
+  const progressPercentage = Math.min((successfulInvites / 3) * 100, 100);
+
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Users className="w-6 h-6 text-primary" />
-            <h1 className="font-display text-xl font-bold text-foreground">{t('My Team')}</h1>
+    <div className="min-h-screen bg-white p-4 pb-24">
+      <div className="max-w-md mx-auto">
+        {/* Ethiopian Flag Header */}
+        <div className="flex items-center justify-end mb-2">
+          <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-gray-700">Ethiopia</span>
+            <span className="text-sm">🇪🇹</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={fetchTeamData}>
-            <RefreshCw className="w-5 h-5 text-muted-foreground" />
-          </Button>
-        </header>
+        </div>
 
-        {/* Referral Card */}
-        <div className="p-6 bg-card rounded-2xl border border-primary/30 shadow-sm mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-full primary-gradient">
-              <Gift className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{t('Invite Friends')}</h3>
-              <p className="text-sm text-muted-foreground">{t('Earn 145 ETB when they deposit')}</p>
-            </div>
-          </div>
-
-          {/* Referral Code Display */}
-          <div className="mb-4">
-            <p className="text-xs text-muted-foreground mb-1">{t('Your referral code')}</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-lg p-3 flex items-center justify-center">
-                <span className="text-2xl font-bold tracking-widest text-primary">{referralCode}</span>
+        {/* Team Image */}
+        <div className="mb-4">
+          {!imageError ? (
+            <img 
+              src={teamImage} 
+              alt="Team Ethiopia" 
+              className="w-full h-auto rounded-xl shadow-sm"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-48 bg-gradient-to-r from-green-600 via-yellow-500 to-red-600 rounded-xl flex items-center justify-center shadow-sm">
+              <div className="text-center text-white">
+                <Users className="w-16 h-16 mx-auto mb-3" />
+                <p className="text-xl font-bold">Team Ethiopia</p>
+                <p className="text-sm opacity-90">Build Your Team</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={copyReferralCode} className="text-primary">
-                <Copy className="w-5 h-5" />
-              </Button>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button onClick={copyReferralLink} className="primary-gradient text-primary-foreground">
-              <Copy className="w-4 h-4 mr-2" />
-              {t('Copy Link')}
+        {/* Main Invite Card */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+          <div className="p-5">
+            <div className="flex items-start justify-between mb-2">
+              <h2 className="text-xl font-semibold text-gray-900">🚀 Invite & Earn</h2>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-gray-900">5,000 ETB</div>
+              </div>
+            </div>
+            
+            {/* Motivational Description */}
+            <div className="mb-4 space-y-2">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                <span className="font-semibold text-red-600">Start earning passive income today!</span> Just invite your friends and family using your unique referral link.
+              </p>
+              <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                <p className="text-xs text-gray-700">
+                  💰 <span className="font-medium">How it works:</span> Get 5,000 ETB for every 3 friends who join and transfer 20,000 ETB. Your friends also get 500 ETB bonus!
+                </p>
+              </div>
+            </div>
+            
+            {/* Excluding European countries badge */}
+            <div className="mb-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                <span className="text-sm">🇪🇹</span>
+                <span className="text-xs font-medium text-red-600">
+                  Excluding European countries
+                </span>
+              </div>
+            </div>
+            
+            {/* Referral Code Display with Copy Button */}
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Your unique referral code:</p>
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 p-3 rounded-xl border border-red-200 flex items-center justify-between">
+                <div>
+                  <span className="text-2xl font-bold text-red-600 tracking-wider">{referralCode}</span>
+                  <p className="text-xs text-gray-500 mt-1">Share this code with friends</p>
+                </div>
+                <Button
+                  onClick={copyReferralCode}
+                  size="sm"
+                  className={`${copiedCode ? 'bg-green-600' : 'bg-red-600'} hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2`}
+                >
+                  <Copy className="w-4 h-4" />
+                  {copiedCode ? 'Copied!' : 'Copy'}
+                </Button>
+              </div>
+            </div>
+            
+            {/* Referral Link Display */}
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Your unique referral link:</p>
+              <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 flex items-center justify-between">
+                <code className="text-xs text-gray-700 truncate max-w-[200px]">
+                  {referralLink}
+                </code>
+                <Button
+                  onClick={copyReferralLink}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={copyReferralLink}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-4 rounded-xl mb-3 text-base flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-5 h-5" />
+              Share Your Unique Link & Earn
             </Button>
-            <Button onClick={shareReferralLink} variant="outline" className="border-primary text-primary">
-              <Share2 className="w-4 h-4 mr-2" />
-              {t('Share')}
+            
+            <p className="text-xs text-gray-500 text-center">
+              Terms and conditions apply • Start earning today!
+            </p>
+          </div>
+          
+          {/* Progress Section */}
+          <div className="border-t border-gray-100 p-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">📊 Your Progress</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <span className="text-sm text-gray-700">Successful Invite</span>
+                </div>
+                <span className="text-sm font-medium text-gray-900">{stats.earnedCredits} Earned Credit</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-red-600" />
+                  </div>
+                  <span className="text-sm text-gray-700">Pending Invite</span>
+                </div>
+                <span className="text-sm font-medium text-gray-900">{stats.pendingBonuses} Pending</span>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                <span>{successfulInvites}/3 invites</span>
+                <span>{Math.round(progressPercentage)}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-red-600 rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* QR Code Section */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-semibold text-gray-900">📱 Scan to Invite</h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowQR(!showQR)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <QrCode className="w-5 h-5" />
             </Button>
           </div>
+          
+          {showQR && (
+            <div className="flex flex-col items-center p-4 bg-white rounded-xl">
+              <div className="p-4 bg-white rounded-2xl shadow-lg mb-3">
+                <QRCode value={referralLink} size={180} />
+              </div>
+              <p className="text-xs text-gray-500 text-center">
+                Scan this QR code to share the referral link
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Team Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="p-4 bg-card rounded-xl border border-border shadow-sm text-center">
-            <p className="text-2xl font-bold text-foreground">{stats.totalMembers}</p>
-            <p className="text-xs text-muted-foreground">{t('Team Members')}</p>
-          </div>
-          <div className="p-4 bg-card rounded-xl border border-border shadow-sm text-center">
-            <p className="text-2xl font-bold text-primary">{teamEarnings.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">{t('Earned (ETB)')}</p>
-          </div>
-          <div className="p-4 bg-card rounded-xl border border-border shadow-sm text-center">
-            <p className="text-2xl font-bold text-orange-500">{stats.pendingBonuses}</p>
-            <p className="text-xs text-muted-foreground">{t('Pending')}</p>
+        {/* Social Media Share Section */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6 p-5">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Share via</h3>
+          
+          <div className="flex items-center justify-center gap-6">
+            {/* Facebook - Blue Background */}
+            <button 
+              onClick={() => shareOnSocial('facebook')}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-[#1877F2] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <Facebook className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-xs text-gray-600">Facebook</span>
+            </button>
+            
+            {/* Instagram - Gradient Background */}
+            <button 
+              onClick={() => shareOnSocial('instagram')}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <Instagram className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-xs text-gray-600">Instagram</span>
+            </button>
+            
+            {/* Telegram - Blue Background */}
+            <button 
+              onClick={() => shareOnSocial('telegram')}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-[#0088cc] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <Send className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-xs text-gray-600">Telegram</span>
+            </button>
           </div>
         </div>
 
-        {/* Additional Stats Row */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="p-4 bg-card rounded-xl border border-border shadow-sm flex items-center gap-3">
-            <div className="p-2 rounded-full bg-green-100">
-              <Star className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('Active Members')}</p>
-              <p className="text-lg font-bold text-foreground">{stats.activeMembers}</p>
-            </div>
-          </div>
-          <div className="p-4 bg-card rounded-xl border border-border shadow-sm flex items-center gap-3">
-            <div className="p-2 rounded-full bg-blue-100">
-              <CreditCard className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('Bonus Per Invite')}</p>
-              <p className="text-lg font-bold text-primary">145 ETB</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Team Members List or Empty State */}
+        {/* Team Members List with Phone Numbers */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Spinner size="lg" />
           </div>
         ) : teamMembers.length === 0 ? (
-          <div className="text-center py-12 bg-card rounded-2xl border border-border shadow-sm">
-            <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium">{t('No team members yet')}</p>
-            <p className="text-sm text-muted-foreground mt-2">{t('Share your referral code to grow your team')}</p>
-            <Button onClick={copyReferralLink} className="mt-4 primary-gradient text-primary-foreground">
+          <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-red-600" />
+            </div>
+            <p className="text-gray-900 font-medium">No team members yet</p>
+            <p className="text-sm text-gray-500 mt-2">Share your referral code to grow your team</p>
+            <Button onClick={copyReferralLink} className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6">
               <Copy className="w-4 h-4 mr-2" />
-              {t('Copy Referral Link')}
+              Copy Referral Link
             </Button>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-foreground">{t('Team Members')}</h3>
-              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                {stats.activeMembers} {t('active')}
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-semibold text-gray-900">Team Members</h3>
+              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                {stats.totalMembers} Total
               </span>
             </div>
             {teamMembers.map((member) => (
-              <TeamMemberCard
-                key={member.id}
-                member={member}
-                claimingId={claimingId}
-                onClaim={handleClaimBonus}
-              />
+              <div key={member.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  {/* Person icon/avatar */}
+                  <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold text-lg border-2 border-red-200">
+                    {member.name.charAt(0).toUpperCase()}
+                  </div>
+                  
+                  {/* Member Info with Phone Number */}
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{member.name}</h4>
+                    
+                    {/* Phone Number Display */}
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                      <Phone className="w-3 h-3" />
+                      <span>{formatPhoneNumber(member.phone)}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mt-2">
+                      {member.bonus_claimed ? (
+                        <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200 flex items-center gap-1">
+                          <Award className="w-3 h-3" />
+                          Claimed
+                        </span>
+                      ) : member.has_made_first_deposit ? (
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          Ready to Claim
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">
+                          Pending Deposit
+                        </span>
+                      )}
+                      
+                      {member.current_vip_level > 0 && (
+                        <span className="text-xs bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded-full border border-yellow-200">
+                          VIP {member.current_vip_level}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Claim Button - Only shows when ready to claim */}
+                  {!member.bonus_claimed && member.has_made_first_deposit && (
+                    <Button
+                      onClick={() => handleClaimBonus(member.id)}
+                      disabled={claimingId === member.id}
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg text-sm"
+                    >
+                      {claimingId === member.id ? '...' : 'Claim 145 ETB'}
+                    </Button>
+                  )}
+                  
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                
+                {/* Joined Date */}
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <p className="text-xs text-gray-400">
+                    Joined: {new Date(member.created_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         )}
