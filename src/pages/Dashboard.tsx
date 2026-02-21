@@ -20,7 +20,8 @@ import dswLogo from '@/assets/dsw-logo.png';
 import withdrawImage from '@/assets/withdraw.png';
 import depositImage from '@/assets/deposit.png';
 import giftCodeImage from '@/assets/gift-code.png';
-import { Headset, MessageCircle, Send, Users, ExternalLink, X } from 'lucide-react';
+import addsImage from '@/assets/adds.png'; // Import your adds.png image
+import { Headset, MessageCircle, Send, Users, ExternalLink, X, Sparkles, TrendingUp, Award } from 'lucide-react';
 
 interface VipLevel {
   id: number;
@@ -41,6 +42,129 @@ const telegramChannels = [
   { label: 'Public Channel', url: 'https://t.me/etonlinejob1', handle: 'DSW Channel' },
   { label: 'Discussion Group', url: 'https://t.me/+Jihv4uEOv0o0M2U0', handle: 'DSW Group' },
 ];
+
+// Welcome Banner Component with Animated Text
+const WelcomeBanner = () => {
+  // Array of messages to scroll
+  const messages = [
+    "🚀 Welcome to Digital Smart Work!",
+    "💰 Increase Your Salary Through Smart Investments",
+    "🏆 Invest in Gold, AirPods & Crypto Products",
+    "💎 Start Earning Passive Income Today",
+    "📈 Your Financial Freedom Starts Here",
+    "✨ Join Thousands of Successful Investors",
+    "🎯 Turn Your Savings into Wealth",
+    "⭐ VIP Members Earn Up to 300% Returns"
+  ];
+
+  return (
+    <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-lg">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 opacity-20">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-white rounded-full animate-float-slow"
+            style={{
+              width: `${Math.random() * 6 + 2}px`,
+              height: `${Math.random() * 6 + 2}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${Math.random() * 10 + 5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative flex items-center p-3">
+        {/* Left side - Fixed Image */}
+        <div className="flex-shrink-0 relative z-10">
+          <div className="relative">
+            {/* Glowing effect around image */}
+            <div className="absolute inset-0 bg-white/30 rounded-full blur-xl animate-pulse" />
+            <img 
+              src={addsImage} 
+              alt="DSW Promo" 
+              className="relative w-14 h-14 object-contain rounded-full border-2 border-white/50 shadow-xl"
+            />
+          </div>
+        </div>
+
+        {/* Right side - Animated Text Container */}
+        <div className="flex-1 ml-4 overflow-hidden">
+          <div className="relative">
+            {/* Gradient overlays for smooth fade effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-purple-600 to-transparent z-10" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-indigo-600 to-transparent z-10" />
+            
+            {/* Animated text marquee */}
+            <div className="overflow-hidden">
+              <div className="flex animate-marquee whitespace-nowrap">
+                {/* First set of messages */}
+                {messages.map((msg, index) => (
+                  <div
+                    key={`first-${index}`}
+                    className="flex items-center mx-4 text-white"
+                  >
+                    {index === 0 && <Sparkles className="w-4 h-4 mr-2 text-yellow-300" />}
+                    {index === 1 && <TrendingUp className="w-4 h-4 mr-2 text-green-300" />}
+                    {index === 2 && <Award className="w-4 h-4 mr-2 text-yellow-300" />}
+                    <span className="text-sm font-medium drop-shadow-lg">{msg}</span>
+                  </div>
+                ))}
+                {/* Duplicate set for seamless loop */}
+                {messages.map((msg, index) => (
+                  <div
+                    key={`second-${index}`}
+                    className="flex items-center mx-4 text-white"
+                  >
+                    {index === 0 && <Sparkles className="w-4 h-4 mr-2 text-yellow-300" />}
+                    {index === 1 && <TrendingUp className="w-4 h-4 mr-2 text-green-300" />}
+                    {index === 2 && <Award className="w-4 h-4 mr-2 text-yellow-300" />}
+                    <span className="text-sm font-medium drop-shadow-lg">{msg}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Static welcome text below animation (optional) */}
+          <div className="mt-1 text-xs text-white/80 flex items-center gap-2">
+            <span className="bg-white/20 px-2 py-0.5 rounded-full">🎯 24/7 Active</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full">⭐ 1000+ Investors</span>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          25% { transform: translateY(-10px) translateX(5px); }
+          50% { transform: translateY(-20px) translateX(-5px); }
+          75% { transform: translateY(-10px) translateX(5px); }
+        }
+        
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+        
+        .animate-float-slow {
+          animation: float-slow 8s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  );
+};
 
 // Customer Service Modal Component
 const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
@@ -397,6 +521,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-24 relative">
       <div className="max-w-md mx-auto">
         {/* Header removed - no logo or welcome text */}
+
+        {/* Animated Welcome Banner with adds.png */}
+        <WelcomeBanner />
 
         {/* Balance Card with Blue Background and Enhanced Waves */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 shadow-lg">

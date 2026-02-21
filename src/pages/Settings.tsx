@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,13 +13,26 @@ import {
   Info,
   ChevronRight,
   Globe,
-  CreditCard
+  CreditCard,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SuccessModal } from '@/components/SuccessModal';
+
+interface BankAccount {
+  id: string;
+  user_id: string;
+  bank_name: string;
+  account_number: string;
+  account_holder_name: string;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -29,6 +42,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
   
   // Bind account states
   const [bankName, setBankName] = useState('');
@@ -44,6 +59,28 @@ const Settings = () => {
   const [loginPassword, setLoginPassword] = useState('');
   const [withdrawalPin, setWithdrawalPin] = useState('');
   const [confirmWithdrawalPin, setConfirmWithdrawalPin] = useState('');
+
+  // Fetch user's bank accounts on component mount
+  useEffect(() => {
+    if (user) {
+      fetchBankAccounts();
+    }
+  }, [user]);
+
+  const fetchBankAccounts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bank_accounts')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBankAccounts(data || []);
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
+    }
+  };
 
   const showSuccessMessage = (message: string) => {
     setSuccessMessage(message);
@@ -105,16 +142,98 @@ const Settings = () => {
     }
   };
 
-  const handleBindAccount = () => {
+  const handleBindAccount = async () => {
+    if (!user) {
+      showSuccessMessage('Please login first');
+      return;
+    }
+
     if (!bankName || !accountNumber || !accountHolderName) {
       showSuccessMessage('Please fill in all fields');
       return;
     }
-    showSuccessMessage('Account bound successfully!');
-    setBankName('');
-    setAccountNumber('');
-    setAccountHolderName('');
-    setActiveSection('main');
+
+    // Validate account number (basic validation)
+    if (accountNumber.length < 8) {
+      showSuccessMessage('Please enter a valid account number');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Check if this account number already exists for the user
+      const { data: existingAccount, error: checkError } = await supabase
+        .from('bank_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('account_number', accountNumber)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingAccount) {
+        showSuccessMessage('This account number is already registered');
+        setLoading(false);
+        return;
+      }
+
+      // Insert new bank account
+      const { data, error } = await supabase
+        .from('bank_accounts')
+        .insert([
+          {
+            user_id: user.id,
+            bank_name: bankName,
+            account_number: accountNumber,
+            account_holder_name: accountHolderName,
+            is_verified: false
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Refresh bank accounts list
+      await fetchBankAccounts();
+
+      showSuccessMessage('Account bound successfully! Please wait for verification.');
+      
+      // Clear form
+      setBankName('');
+      setAccountNumber('');
+      setAccountHolderName('');
+      
+    } catch (error: any) {
+      console.error('Error binding account:', error);
+      showSuccessMessage(error.message || 'Failed to bind account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async (accountId: string) => {
+    if (!confirm('Are you sure you want to delete this bank account?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bank_accounts')
+        .delete()
+        .eq('id', accountId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      // Refresh bank accounts list
+      await fetchBankAccounts();
+      showSuccessMessage('Bank account deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      showSuccessMessage(error.message || 'Failed to delete account');
+    }
   };
 
   const settingsItems = [
@@ -123,6 +242,7 @@ const Settings = () => {
       label: t('Bind Account Number'),
       description: t('Link your bank account for withdrawals'),
       onClick: () => setActiveSection('bind'),
+      badge: bankAccounts.length > 0 ? `${bankAccounts.length} linked` : undefined
     },
     {
       icon: <Lock className="w-5 h-5" />,
@@ -173,8 +293,61 @@ const Settings = () => {
       case 'bind':
         return (
           <div className="space-y-4 p-4">
-            <h3 className="font-semibold text-foreground text-lg">{t('Bind Account Number')}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-foreground text-lg">{t('Bind Account Number')}</h3>
+              {bankAccounts.length > 0 && (
+                <button
+                  onClick={() => setShowAllAccounts(!showAllAccounts)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {showAllAccounts ? 'Hide' : 'View All'} ({bankAccounts.length})
+                </button>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{t('Link your bank account for withdrawals')}</p>
+
+            {/* Display existing bank accounts */}
+            {showAllAccounts && bankAccounts.length > 0 && (
+              <div className="space-y-3 mb-4">
+                <h4 className="text-sm font-medium text-foreground">Your Linked Accounts</h4>
+                {bankAccounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className="p-3 rounded-lg border border-border bg-muted/30 relative"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">{account.bank_name}</span>
+                        {account.is_verified ? (
+                          <span className="flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                            <CheckCircle className="w-3 h-3" />
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
+                            <AlertCircle className="w-3 h-3" />
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAccount(account.id)}
+                        className="text-xs text-red-600 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <p className="text-sm text-foreground">****{account.account_number.slice(-4)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{account.account_holder_name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Added: {new Date(account.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add new account form */}
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label>{t('Bank Name')}</Label>
@@ -203,10 +376,15 @@ const Settings = () => {
               <Button 
                 className="w-full primary-gradient text-primary-foreground" 
                 onClick={handleBindAccount}
+                disabled={loading}
               >
-                {t('Bind Account')}
+                {loading ? t('Binding...') : t('Bind Account')}
               </Button>
             </div>
+
+            <p className="text-xs text-muted-foreground mt-4">
+              * Your account will be verified by admin within 24 hours. You'll receive a notification once verified.
+            </p>
           </div>
         );
       case 'password':
@@ -405,7 +583,14 @@ const Settings = () => {
                       {item.icon}
                     </div>
                     <div className="text-left">
-                      <span className="text-sm font-medium text-foreground block">{item.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground block">{item.label}</span>
+                        {item.badge && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-muted-foreground">{item.description}</span>
                     </div>
                   </div>
