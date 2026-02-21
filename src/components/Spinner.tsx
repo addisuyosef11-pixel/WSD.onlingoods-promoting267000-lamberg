@@ -1,20 +1,19 @@
-import React from 'react';
+import React from "react";
 
 interface SpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '' }) => {
-  const sizeClasses = {
-    sm: 'w-4 h-4 border-2',
-    md: 'w-8 h-8 border-3',
-    lg: 'w-12 h-12 border-4',
-  };
-
+export const Spinner: React.FC<SpinnerProps> = ({ className = "" }) => {
   return (
     <div
-      className={`${sizeClasses[size]} border-gold/30 border-t-gold rounded-full spinner ${className}`}
-    />
+      className={`bg-[#5f5f5f] rounded-2xl px-8 py-6 flex flex-col items-center justify-center ${className}`}
+    >
+      {/* Spinner */}
+      <div className="loader mb-4" />
+
+      {/* Text */}
+      <p className="text-white text-lg font-medium">Loading...</p>
+    </div>
   );
 };

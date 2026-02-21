@@ -3,7 +3,7 @@ import dswLogo from '@/assets/dsw-logo.png';
 import { ArrowRight } from 'lucide-react';
 
 interface SeriesProductCardProps {
-  id: number;
+  id: number;i
   name: string;
   price: number;
   dailyIncome: number;

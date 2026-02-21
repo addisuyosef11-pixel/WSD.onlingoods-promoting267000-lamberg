@@ -7,6 +7,8 @@ import { DepositModal } from '@/components/DepositModal';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import SeriesProductCard from '@/components/SeriesProductCard';
 import SeriesTabs from '@/components/SeriesTabs';
+import CryptoTabContent from '@/components/CryptoTabContent'; // Import Crypto tab content
+
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
@@ -30,7 +32,7 @@ const Earn = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
-  const [activeSeries, setActiveSeries] = useState<'P' | 'B'>('P');
+  const [activeSeries, setActiveSeries] = useState<'P' | 'B' | 'C'>('P'); // Updated to include 'C'
   const [showDeposit, setShowDeposit] = useState(false);
   const [loadingLevels, setLoadingLevels] = useState(true);
 
@@ -116,30 +118,40 @@ const Earn = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </Button>
-          <h1 className="font-display text-xl font-bold text-foreground">{t('Product')}</h1>
+          <h1 className="font-display text-xl font-bold text-foreground">
+            {activeSeries === 'C' ? t('Cryptocurrency') : t('Product')}
+          </h1>
         </header>
 
         <SeriesTabs activeSeries={activeSeries} onSeriesChange={setActiveSeries} />
 
-        {loadingLevels ? (
-          <div className="flex justify-center py-8">
-            <Spinner size="lg" />
-          </div>
+        {activeSeries === 'C' ? (
+          /* Crypto Tab Content */
+          <CryptoTabContent />
         ) : (
-          <div className="space-y-4">
-              {filteredLevels.map((level) => (
-              <SeriesProductCard
-                key={level.id}
-                id={level.id}
-                name={level.name}
-                price={level.price}
-                dailyIncome={level.daily_income}
-                cycleDays={level.cycle_days}
-                imageUrl={level.image_url}
-                onBuy={() => handleBuy(level)}
-              />
-            ))}
-          </div>
+          /* P Series or B Series Content */
+          <>
+            {loadingLevels ? (
+              <div className="flex justify-center py-8">
+                <Spinner size="lg" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredLevels.map((level) => (
+                  <SeriesProductCard
+                    key={level.id}
+                    id={level.id}
+                    name={level.name}
+                    price={level.price}
+                    dailyIncome={level.daily_income}
+                    cycleDays={level.cycle_days}
+                    imageUrl={level.image_url}
+                    onBuy={() => handleBuy(level)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

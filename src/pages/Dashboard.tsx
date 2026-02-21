@@ -15,11 +15,12 @@ import VipCarousel from '@/components/VipCarousel';
 import RecentCommissions from '@/components/RecentCommissions';
 import AboutSection from '@/components/AboutSection';
 import { Spinner } from '@/components/Spinner';
+
 import dswLogo from '@/assets/dsw-logo.png';
 import withdrawImage from '@/assets/withdraw.png';
 import depositImage from '@/assets/deposit.png';
 import giftCodeImage from '@/assets/gift-code.png';
-import { Headset, MessageCircle, Send, Users, Hash, ExternalLink, X, Phone, Mail, Globe } from 'lucide-react';
+import { Headset, MessageCircle, Send, Users, ExternalLink, X } from 'lucide-react';
 
 interface VipLevel {
   id: number;
@@ -184,6 +185,45 @@ const CustomerServiceButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
+// Add these styles to your global CSS file or create a style tag
+const waveAnimations = `
+@keyframes wave-slow {
+  0%, 100% { transform: translateX(0) scaleX(1.2); }
+  50% { transform: translateX(-10px) scaleX(1.2); }
+}
+
+@keyframes wave-medium {
+  0%, 100% { transform: translateX(0) scaleX(1.1); }
+  50% { transform: translateX(10px) scaleX(1.1); }
+}
+
+@keyframes wave-fast {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-5px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.animate-wave-slow {
+  animation: wave-slow 8s ease-in-out infinite;
+}
+
+.animate-wave-medium {
+  animation: wave-medium 6s ease-in-out infinite;
+}
+
+.animate-wave-fast {
+  animation: wave-fast 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 10s ease-in-out infinite;
+}
+`;
+
 const Dashboard = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
   const { t } = useLanguage();
@@ -199,6 +239,16 @@ const Dashboard = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [showTelegram, setShowTelegram] = useState(false);
   const [showCustomerService, setShowCustomerService] = useState(false);
+  
+  // Add animation styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = waveAnimations;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Show announcement on login
   useEffect(() => {
@@ -306,8 +356,9 @@ const Dashboard = () => {
     setShowCustomerService(true);
   };
 
-  // Filter P-Series levels for display
+  // Filter P-Series and B-Series levels for display
   const pSeriesLevels = vipLevels.filter(level => level.series === 'P' || !level.series);
+  const bSeriesLevels = vipLevels.filter(level => level.series === 'B');
 
   // Generate carousel items from P-Series VIP levels (first 3 for carousel)
   const carouselItems = pSeriesLevels.slice(0, 3).map((level) => {
@@ -345,33 +396,74 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-24 relative">
       <div className="max-w-md mx-auto">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src={dswLogo} alt="DSW" className="w-12 h-12 object-contain rounded-xl shadow-md" />
-            <h1 className="font-display text-2xl font-bold text-gray-800">DSW</h1>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full">
-            <span className="text-xs font-medium text-blue-700">Welcome back!</span>
-          </div>
-        </header>
+        {/* Header removed - no logo or welcome text */}
 
-        {/* Balance Card with Blue Background - Changed from black to blue */}
-        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg">
-          {/* Wave decoration */}
-          <div className="absolute inset-0 opacity-20">
+        {/* Balance Card with Blue Background and Enhanced Waves */}
+        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 shadow-lg">
+          {/* Animated Wave decorations - More prominent and wavy */}
+          <div className="absolute inset-0 opacity-40">
+            {/* First wave layer - slow and wide */}
             <svg
-              className="absolute bottom-0 left-0 w-full"
+              className="absolute bottom-0 left-0 w-full animate-wave-slow"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 1440 320"
               preserveAspectRatio="none"
-              style={{ height: '60%' }}
+              style={{ height: '80%', transform: 'scaleX(1.3)' }}
             >
               <path
                 fill="#ffffff"
-                fillOpacity="0.3"
-                d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+                fillOpacity="0.25"
+                d="M0,224L60,213.3C120,203,240,181,360,181.3C480,181,600,203,720,213.3C840,224,960,224,1080,208C1200,192,1320,160,1380,144L1440,128L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"
               ></path>
             </svg>
+            
+            {/* Second wave layer - medium speed, different pattern */}
+            <svg
+              className="absolute bottom-0 left-0 w-full animate-wave-medium"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1440 320"
+              preserveAspectRatio="none"
+              style={{ height: '75%', transform: 'scaleX(1.2)' }}
+            >
+              <path
+                fill="#ffffff"
+                fillOpacity="0.2"
+                d="M0,96L48,122.7C96,149,192,203,288,213.3C384,224,480,192,576,170.7C672,149,768,139,864,149.3C960,160,1056,192,1152,197.3C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+              ></path>
+            </svg>
+            
+            {/* Third wave layer - fast, sharp waves */}
+            <svg
+              className="absolute bottom-0 left-0 w-full animate-wave-fast"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1440 320"
+              preserveAspectRatio="none"
+              style={{ height: '70%' }}
+            >
+              <path
+                fill="#ffffff"
+                fillOpacity="0.15"
+                d="M0,256L48,234.7C96,213,192,171,288,165.3C384,160,480,192,576,208C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+              ></path>
+            </svg>
+          </div>
+          
+          {/* Floating bubbles for extra wave effect */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-white/10 animate-float"
+                style={{
+                  width: `${20 + i * 5}px`,
+                  height: `${20 + i * 5}px`,
+                  left: `${10 + i * 12}%`,
+                  bottom: `${10 + i * 8}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: `${8 + i}s`,
+                }}
+              />
+            ))}
           </div>
           
           {/* Balance Card Content */}
@@ -409,6 +501,29 @@ const Dashboard = () => {
               bgColor="#F3E5F5"
             />
           </div>
+        </div>
+
+        {/* Promotional Video Section */}
+        <div className="mb-6">
+          <h2 className="font-display text-lg font-bold text-gray-800 mb-3">Watch & Earn</h2>
+          <div className="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/UQjQMGTG1Vg?autoplay=1&mute=1&loop=1&playlist=UQjQMGTG1Vg&controls=0&showinfo=0&rel=0&modestbranding=1"
+              title="Promotional Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute top-0 left-0 w-full h-full"
+              style={{ border: 'none' }}
+            />
+            
+            {/* Optional overlay to prevent accidental navigation */}
+            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+              Watch & Earn
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            Watch this video to learn more about earning opportunities
+          </p>
         </div>
 
         {/* Auto-scrolling VIP Carousel */}
