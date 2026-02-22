@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, CreditCard, Upload, AlertTriangle, Clock, Building2, Plus, Minus } from 'lucide-react';
+import { X, CreditCard, Upload, AlertTriangle, Clock, Building2, Plus, Minus, Copy, Check, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { SuccessModal } from '@/components/SuccessModal';
+import { Spinner } from '@/components/Spinner';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface PaymentMethod {
 }
 
 const presetAmounts = [100, 200, 500, 1000, 2000, 5000];
+const SUPPORT_USERNAME = "@DSWonline_suport";
 
 export const DepositModal: React.FC<DepositModalProps> = ({
   isOpen,
@@ -41,11 +43,32 @@ export const DepositModal: React.FC<DepositModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Initialize audio for success sound
+    audioRef.current = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchPaymentMethods = async () => {
+      setIsLoading(true);
+      
+      // Simulate 2 second delay for API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const { data } = await supabase
         .from('payment_methods')
         .select('*')
@@ -54,6 +77,8 @@ export const DepositModal: React.FC<DepositModalProps> = ({
       if (data) {
         setPaymentMethods(data as PaymentMethod[]);
       }
+      
+      setIsLoading(false);
     };
 
     if (isOpen) {
@@ -82,6 +107,13 @@ export const DepositModal: React.FC<DepositModalProps> = ({
       }
     };
   }, [isOpen, onClose]);
+
+  // Play success sound when showSuccess becomes true
+  useEffect(() => {
+    if (showSuccess && audioRef.current) {
+      audioRef.current.play().catch(e => console.log('Audio playback failed:', e));
+    }
+  }, [showSuccess]);
 
   if (!isOpen) return null;
 
@@ -114,6 +146,20 @@ export const DepositModal: React.FC<DepositModalProps> = ({
 
   const handleDecreaseAmount = () => {
     setAmount(prev => Math.max(50, prev - 50));
+  };
+
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleSupportClick = () => {
+    window.open(`https://t.me/${SUPPORT_USERNAME.replace('@', '')}`, '_blank');
   };
 
   const handleDeposit = async () => {
@@ -185,6 +231,18 @@ export const DepositModal: React.FC<DepositModalProps> = ({
     setScreenshotPreview(null);
   };
 
+  // Show loading spinner while fetching payment methods
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative">
+          <Spinner />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -206,6 +264,39 @@ export const DepositModal: React.FC<DepositModalProps> = ({
               <h3 className="font-display text-xl font-bold text-foreground">Deposit Funds</h3>
               <p className="text-sm text-muted-foreground">Add funds to your account</p>
             </div>
+          </div>
+
+          {/* Support Contact - Green Box with White Text (Always visible before payment selection) */}
+          <div className="mb-6">
+            <button
+              onClick={handleSupportClick}
+              className="w-full p-4 rounded-xl bg-green-600 hover:bg-green-700 transition-colors shadow-md cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/30">
+                    <Volume2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white text-sm font-medium opacity-90">Need assistance?</p>
+                    <p className="text-white text-lg font-bold">{SUPPORT_USERNAME}</p>
+                  </div>
+                </div>
+                <div className="bg-white/20 rounded-full p-2 group-hover:bg-white/30 transition-colors">
+                  <svg 
+                    className="w-5 h-5 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-white/80 text-xs mt-2 text-left">
+                Click to contact support on Telegram
+              </p>
+            </button>
           </div>
 
           {/* 15-Minute Timer */}
@@ -316,7 +407,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
             </div>
           </div>
 
-          {/* Merchant Account Info */}
+          {/* Merchant Account Info - With Copyable Fields (Only shown after selection) */}
           {selectedPaymentMethod && (
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-4">
               <div className="flex items-center gap-3 mb-3">
@@ -347,15 +438,47 @@ export const DepositModal: React.FC<DepositModalProps> = ({
                   </div>
                 )}
                 
+                {/* Account Number - Copyable */}
                 <div className="bg-white rounded-lg p-2.5 border border-border">
-                  <p className="text-xs text-muted-foreground">Account Number</p>
-                  <p className="text-lg font-bold text-primary tracking-wider">{selectedPaymentMethod.account_number}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Account Number</p>
+                    <button
+                      onClick={() => copyToClipboard(selectedPaymentMethod.account_number, 'account')}
+                      className="p-1 rounded-md hover:bg-muted transition-colors"
+                      title="Copy account number"
+                    >
+                      {copiedField === 'account' ? (
+                        <Check className="w-3.5 h-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-primary" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-lg font-bold text-primary tracking-wider font-mono">
+                    {selectedPaymentMethod.account_number}
+                  </p>
                 </div>
                 
+                {/* Account Holder - Copyable */}
                 {selectedPaymentMethod.account_holder_name && (
                   <div className="bg-white rounded-lg p-2.5 border border-border">
-                    <p className="text-xs text-muted-foreground">Account Holder</p>
-                    <p className="text-sm font-semibold text-foreground">{selectedPaymentMethod.account_holder_name}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">Account Holder</p>
+                      <button
+                        onClick={() => copyToClipboard(selectedPaymentMethod.account_holder_name!, 'holder')}
+                        className="p-1 rounded-md hover:bg-muted transition-colors"
+                        title="Copy account holder name"
+                      >
+                        {copiedField === 'holder' ? (
+                          <Check className="w-3.5 h-3.5 text-green-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-primary" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {selectedPaymentMethod.account_holder_name}
+                    </p>
                   </div>
                 )}
               </div>
@@ -432,6 +555,19 @@ export const DepositModal: React.FC<DepositModalProps> = ({
           >
             {isSubmitting ? 'Submitting...' : 'Submit Deposit Request'}
           </Button>
+
+          {/* Support Contact Reminder */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              Questions? Contact{" "}
+              <button
+                onClick={handleSupportClick}
+                className="text-green-600 font-medium hover:underline"
+              >
+                {SUPPORT_USERNAME}
+              </button>
+            </p>
+          </div>
         </div>
       </div>
 

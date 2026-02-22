@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { BalanceCard } from '@/components/BalanceCard';
 import { DepositModal } from '@/components/DepositModal';
 import { WithdrawModal } from '@/components/WithdrawModal';
 import { GiftModal } from '@/components/GiftModal';
@@ -20,8 +19,12 @@ import dswLogo from '@/assets/dsw-logo.png';
 import withdrawImage from '@/assets/withdraw.png';
 import depositImage from '@/assets/deposit.png';
 import giftCodeImage from '@/assets/gift-code.png';
-import addsImage from '@/assets/adds.png'; // Import your adds.png image
-import { Headset, MessageCircle, Send, Users, ExternalLink, X, Sparkles, TrendingUp, Award } from 'lucide-react';
+import addsImage from '@/assets/adds.png';
+import { 
+  Headset, MessageCircle, Send, Users, ExternalLink, X, 
+  Sparkles, TrendingUp, Award, Eye, EyeOff, Wallet,
+  Loader
+} from 'lucide-react';
 
 interface VipLevel {
   id: number;
@@ -43,7 +46,67 @@ const telegramChannels = [
   { label: 'Discussion Group', url: 'https://t.me/+Jihv4uEOv0o0M2U0', handle: 'DSW Group' },
 ];
 
-// Welcome Banner Component with Animated Text
+// Loading Overlay Component
+const LoadingOverlay = ({ message = "Processing..." }: { message?: string }) => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="bg-white rounded-2xl p-6 shadow-xl flex flex-col items-center gap-3">
+      <Spinner />
+      <p className="text-gray-700 font-medium">{message}</p>
+    </div>
+  </div>
+);
+
+// Minimized Balance Card with Eye Toggle - Matching deposit button color (#E3F2FD)
+const MinimizedBalanceCard = ({ 
+  balance, 
+  withdrawableBalance 
+}: { 
+  balance: number; 
+  withdrawableBalance: number;
+}) => {
+  const [showBalance, setShowBalance] = useState(true);
+
+  const formatBalance = (value: number) => {
+    if (showBalance) {
+      return value.toLocaleString() + ' ETB';
+    }
+    return '**** ETB';
+  };
+
+  return (
+    <div className="rounded-2xl p-4 shadow-lg" style={{ backgroundColor: '#E3F2FD' }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-blue-600" />
+          <span className="text-blue-700 text-sm font-medium">My Wallet</span>
+        </div>
+        <button
+          onClick={() => setShowBalance(!showBalance)}
+          className="p-2 hover:bg-blue-200 rounded-lg transition-colors"
+        >
+          {showBalance ? (
+            <EyeOff className="w-4 h-4 text-blue-600" />
+          ) : (
+            <Eye className="w-4 h-4 text-blue-600" />
+          )}
+        </button>
+      </div>
+      
+      <div className="space-y-2">
+        <div>
+          <p className="text-xs text-blue-600/70">Main Balance</p>
+          <p className="text-xl font-bold text-blue-800">{formatBalance(balance)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-blue-600/70">Withdrawable</p>
+          <p className="text-lg font-semibold text-green-600">{formatBalance(withdrawableBalance)}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Welcome Banner Component (unchanged)
 const WelcomeBanner = () => {
   // Array of messages to scroll
   const messages = [
@@ -129,7 +192,7 @@ const WelcomeBanner = () => {
             </div>
           </div>
 
-          {/* Static welcome text below animation (optional) */}
+          {/* Static welcome text below animation */}
           <div className="mt-1 text-xs text-white/80 flex items-center gap-2">
             <span className="bg-white/20 px-2 py-0.5 rounded-full">🎯 24/7 Active</span>
             <span className="bg-white/20 px-2 py-0.5 rounded-full">⭐ 1000+ Investors</span>
@@ -277,35 +340,49 @@ const ActionButton = ({
   image, 
   label, 
   onClick,
-  bgColor = 'bg-white'
+  bgColor = 'bg-white',
+  isLoading = false
 }: { 
   image: string; 
   label: string; 
   onClick: () => void;
   bgColor?: string;
+  isLoading?: boolean;
 }) => (
   <button
     onClick={onClick}
-    className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
+    disabled={isLoading}
+    className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
     style={{ backgroundColor: bgColor }}
   >
-    <img src={image} alt={label} className="w-10 h-10 object-contain" />
-    <span className="text-sm font-medium text-gray-700">{label}</span>
+    {isLoading ? (
+      <Loader className="w-6 h-6 text-blue-600 animate-spin" />
+    ) : (
+      <img src={image} alt={label} className="w-10 h-10 object-contain" />
+    )}
+    <span className="text-sm font-medium text-gray-700">{isLoading ? 'Loading...' : label}</span>
   </button>
 );
 
 // Customer Service Button Component
-const CustomerServiceButton = ({ onClick }: { onClick: () => void }) => (
+const CustomerServiceButton = ({ onClick, isLoading }: { onClick: () => void; isLoading?: boolean }) => (
   <button
     onClick={onClick}
-    className="fixed right-4 bottom-20 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 border-2 border-white/20"
+    disabled={isLoading}
+    className="fixed right-4 bottom-20 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <Headset className="w-5 h-5" />
-    <span className="font-medium text-sm">Customer Service</span>
-    <span className="flex h-3 w-3 relative">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-    </span>
+    {isLoading ? (
+      <Loader className="w-5 h-5 animate-spin" />
+    ) : (
+      <Headset className="w-5 h-5" />
+    )}
+    <span className="font-medium text-sm">{isLoading ? 'Please wait...' : 'DSW Support'}</span>
+    {!isLoading && (
+      <span className="flex h-3 w-3 relative">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+      </span>
+    )}
   </button>
 );
 
@@ -363,6 +440,14 @@ const Dashboard = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [showTelegram, setShowTelegram] = useState(false);
   const [showCustomerService, setShowCustomerService] = useState(false);
+  
+  // Loading states for actions
+  const [isDepositLoading, setIsDepositLoading] = useState(false);
+  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
+  const [isGiftLoading, setIsGiftLoading] = useState(false);
+  const [isInvestLoading, setIsInvestLoading] = useState(false);
+  const [isCustomerServiceLoading, setIsCustomerServiceLoading] = useState(false);
+  const [investLevelId, setInvestLevelId] = useState<number | null>(null);
   
   // Add animation styles
   useEffect(() => {
@@ -440,13 +525,25 @@ const Dashboard = () => {
   }, [user, profile?.current_vip_level]);
 
   const handleInvest = async (levelId: number) => {
+    setInvestLevelId(levelId);
+    setIsInvestLoading(true);
+    
+    // 1 second delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     const level = vipLevels.find(l => l.id === levelId);
-    if (!level || !profile || !user) return;
+    if (!level || !profile || !user) {
+      setIsInvestLoading(false);
+      setInvestLevelId(null);
+      return;
+    }
 
     if (profile.balance < level.price) {
       setSuccessMessage('Insufficient balance');
       setShowSuccess(true);
       setShowDeposit(true);
+      setIsInvestLoading(false);
+      setInvestLevelId(null);
       return;
     }
 
@@ -459,6 +556,8 @@ const Dashboard = () => {
     if (error) {
       setSuccessMessage('Purchase failed. Please try again.');
       setShowSuccess(true);
+      setIsInvestLoading(false);
+      setInvestLevelId(null);
       return;
     }
 
@@ -470,14 +569,45 @@ const Dashboard = () => {
       setSuccessMessage('Purchase failed. Insufficient balance.');
       setShowSuccess(true);
     }
+    
+    setIsInvestLoading(false);
+    setInvestLevelId(null);
+  };
+
+  const handleDepositClick = async () => {
+    setIsDepositLoading(true);
+    // 1 second delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setShowDeposit(true);
+    setIsDepositLoading(false);
+  };
+
+  const handleWithdrawClick = async () => {
+    setIsWithdrawLoading(true);
+    // 1 second delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setShowWithdraw(true);
+    setIsWithdrawLoading(false);
+  };
+
+  const handleGiftClick = async () => {
+    setIsGiftLoading(true);
+    // 1 second delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setShowGift(true);
+    setIsGiftLoading(false);
+  };
+
+  const handleCustomerService = async () => {
+    setIsCustomerServiceLoading(true);
+    // 1 second delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setShowCustomerService(true);
+    setIsCustomerServiceLoading(false);
   };
 
   const handleDepositSubmitted = () => {
     // Success is already shown by DepositModal
-  };
-
-  const handleCustomerService = () => {
-    setShowCustomerService(true);
   };
 
   // Filter P-Series and B-Series levels for display
@@ -520,112 +650,41 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-24 relative">
       <div className="max-w-md mx-auto">
-        {/* Header removed - no logo or welcome text */}
-
-        {/* Animated Welcome Banner with adds.png */}
+        {/* Animated Welcome Banner */}
         <WelcomeBanner />
 
-        {/* Balance Card with Blue Background and Enhanced Waves */}
-        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 shadow-lg">
-          {/* Animated Wave decorations - More prominent and wavy */}
-          <div className="absolute inset-0 opacity-40">
-            {/* First wave layer - slow and wide */}
-            <svg
-              className="absolute bottom-0 left-0 w-full animate-wave-slow"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1440 320"
-              preserveAspectRatio="none"
-              style={{ height: '80%', transform: 'scaleX(1.3)' }}
-            >
-              <path
-                fill="#ffffff"
-                fillOpacity="0.25"
-                d="M0,224L60,213.3C120,203,240,181,360,181.3C480,181,600,203,720,213.3C840,224,960,224,1080,208C1200,192,1320,160,1380,144L1440,128L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"
-              ></path>
-            </svg>
-            
-            {/* Second wave layer - medium speed, different pattern */}
-            <svg
-              className="absolute bottom-0 left-0 w-full animate-wave-medium"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1440 320"
-              preserveAspectRatio="none"
-              style={{ height: '75%', transform: 'scaleX(1.2)' }}
-            >
-              <path
-                fill="#ffffff"
-                fillOpacity="0.2"
-                d="M0,96L48,122.7C96,149,192,203,288,213.3C384,224,480,192,576,170.7C672,149,768,139,864,149.3C960,160,1056,192,1152,197.3C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-              ></path>
-            </svg>
-            
-            {/* Third wave layer - fast, sharp waves */}
-            <svg
-              className="absolute bottom-0 left-0 w-full animate-wave-fast"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1440 320"
-              preserveAspectRatio="none"
-              style={{ height: '70%' }}
-            >
-              <path
-                fill="#ffffff"
-                fillOpacity="0.15"
-                d="M0,256L48,234.7C96,213,192,171,288,165.3C384,160,480,192,576,208C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-              ></path>
-            </svg>
-          </div>
-          
-          {/* Floating bubbles for extra wave effect */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-white/10 animate-float"
-                style={{
-                  width: `${20 + i * 5}px`,
-                  height: `${20 + i * 5}px`,
-                  left: `${10 + i * 12}%`,
-                  bottom: `${10 + i * 8}%`,
-                  animationDelay: `${i * 0.5}s`,
-                  animationDuration: `${8 + i}s`,
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Balance Card Content */}
-          <div className="relative z-10">
-            <BalanceCard
-              balance={profile.balance}
-              withdrawableBalance={profile.withdrawable_balance}
-              vipLevel={profile.current_vip_level}
-              userName={profile.name}
-              phone={profile.phone}
-            />
-          </div>
+        {/* Minimized Balance Card with Eye Toggle - Matching deposit button color (#E3F2FD) */}
+        <div className="mb-6">
+          <MinimizedBalanceCard 
+            balance={profile.balance}
+            withdrawableBalance={profile.withdrawable_balance}
+          />
         </div>
 
-        {/* Quick Action Buttons - Right after Balance Card */}
+        {/* Quick Action Buttons */}
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold text-gray-800 mb-3">Quick Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             <ActionButton
               image={depositImage}
               label="Deposit"
-              onClick={() => setShowDeposit(true)}
+              onClick={handleDepositClick}
               bgColor="#E3F2FD"
+              isLoading={isDepositLoading}
             />
             <ActionButton
               image={withdrawImage}
               label="Withdraw"
-              onClick={() => setShowWithdraw(true)}
+              onClick={handleWithdrawClick}
               bgColor="#FFF3E0"
+              isLoading={isWithdrawLoading}
             />
             <ActionButton
               image={giftCodeImage}
               label="Gift Code"
-              onClick={() => setShowGift(true)}
+              onClick={handleGiftClick}
               bgColor="#F3E5F5"
+              isLoading={isGiftLoading}
             />
           </div>
         </div>
@@ -656,7 +715,12 @@ const Dashboard = () => {
         {/* Auto-scrolling VIP Carousel */}
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold text-gray-800 mb-4">{t('Hot Products')}</h2>
-          <VipCarousel items={carouselItems} onInvest={handleInvest} />
+          <VipCarousel 
+            items={carouselItems} 
+            onInvest={handleInvest}
+            isLoading={isInvestLoading}
+            loadingLevelId={investLevelId}
+          />
         </div>
 
         {/* Recent Commissions Ticker */}
@@ -667,7 +731,10 @@ const Dashboard = () => {
       </div>
 
       {/* Customer Service Button - Fixed on right side above bottom navigation */}
-      <CustomerServiceButton onClick={handleCustomerService} />
+      <CustomerServiceButton 
+        onClick={handleCustomerService} 
+        isLoading={isCustomerServiceLoading}
+      />
 
       {/* Customer Service Modal */}
       <CustomerServiceModal 
