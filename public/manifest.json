@@ -1,0 +1,17 @@
+{
+  "name": "DSW - Digital Smart Work",
+  "short_name": "DSW",
+  "description": "Join DSW and earn daily income through smart investments. Start earning passive income today with our referral program.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22C55E",
+  "icons": [
+    {
+      "src": "/logo.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["finance", "investment", "business"]
+}

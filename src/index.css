@@ -1,51 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
 @layer base {
   :root {
+    /* Light mode - White background with green accents */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 98%;
-    --card-foreground: 222 47% 11%;
+    --foreground: 0 0% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;
+    --popover-foreground: 0 0% 20%;
+
+    --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 217 91% 60%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 142 70% 45%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
+
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 76% 45%;
-    --success-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 96%;
+    --ring: 142 70% 45%;
+
     --radius: 0.75rem;
 
-    --profit-green: 142 76% 45%;
-    --warning-orange: 25 95% 55%;
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.08);
+    /* Custom green theme tokens */
+    --green-primary: 142 70% 45%;
+    --green-light: 142 70% 95%;
+    --green-dark: 142 70% 35%;
+    --green-glow: 142 70% 75%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    /* Gradients */
+    --gradient-green: linear-gradient(135deg, hsl(142 70% 45%) 0%, hsl(142 70% 35%) 100%);
+    --gradient-light: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+
+    /* Shadows */
+    --shadow-green: 0 4px 12px hsl(142 70% 45% / 0.2);
+    --shadow-green-lg: 0 8px 24px hsl(142 70% 45% / 0.25);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.05);
+
+    /* Fonts */
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', sans-serif;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 32% 91%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 142 70% 45%;
   }
 
   .dark {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 142 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 15%;
+    --ring: 142 70% 45%;
+
+    /* Dark mode shadows */
+    --shadow-green: 0 4px 12px hsl(142 70% 45% / 0.3);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.5);
   }
 }
 
@@ -54,61 +106,343 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-sans);
+    @apply font-bold tracking-tight;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer components {
+  /* Green glow effects */
+  .green-glow {
+    box-shadow: var(--shadow-green);
+  }
+
+  .green-glow-lg {
+    box-shadow: var(--shadow-green-lg);
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-card rounded-xl border border-border;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Button variants - Green */
+  .btn-primary {
+    @apply relative overflow-hidden px-6 py-3 font-semibold rounded-lg transition-all duration-300;
+    background: var(--gradient-green);
+    @apply text-white;
+  }
+
+  .btn-primary:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-green-lg);
+  }
+
+  .btn-secondary {
+    @apply relative px-6 py-3 font-semibold rounded-lg border-2 border-primary transition-all duration-300;
+    @apply text-primary bg-white;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-primary text-white scale-105;
+    box-shadow: var(--shadow-green);
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 font-semibold rounded-lg border border-border bg-white;
+    @apply text-foreground hover:bg-secondary transition-colors;
+  }
+
+  /* Quick action buttons - with specific colors */
+  .btn-deposit {
+    @apply flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95;
+    background-color: #E3F2FD;
+  }
+
+  .btn-withdraw {
+    @apply flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95;
+    background-color: #FFF3E0;
+  }
+
+  .btn-gift {
+    @apply flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95;
+    background-color: #F3E5F5;
+  }
+
+  /* Income boxes */
+  .income-today {
+    @apply p-4 rounded-lg shadow-sm;
+    background-color: #F3E5F5;
+  }
+
+  .income-yesterday {
+    @apply p-4 rounded-lg shadow-sm;
+    background-color: #FFF3E0;
+  }
+
+  /* Animated underline */
+  .link-underline {
+    @apply relative;
+  }
+
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-right transition-transform duration-300;
+  }
+
+  .link-underline:hover::after {
+    @apply scale-x-100 origin-left;
+  }
+
+  /* Section styles */
+  .section-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold mb-4;
+  }
+
+  .section-subtitle {
+    @apply text-lg md:text-xl text-muted-foreground max-w-2xl;
+  }
+
+  /* Floating animation */
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Pulse ring animation */
+  .pulse-ring {
+    @apply relative;
+  }
+
+  .pulse-ring::before {
+    content: '';
+    @apply absolute inset-0 rounded-full border-2 border-primary;
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  /* Page transition */
+  .page-enter {
+    animation: pageEnter 0.5s ease-out forwards;
+  }
+
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger animation delay utilities */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  .stagger-6 { animation-delay: 0.6s; }
+
+  /* Card hover effects */
+  .hover-card {
+    @apply transition-all duration-300;
+  }
+
+  .hover-card:hover {
+    @apply border-primary;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-green);
+  }
+
+  /* Form inputs */
+  .input-primary {
+    @apply w-full px-4 py-3 rounded-lg bg-white border border-border transition-all duration-300;
+    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .input-primary::placeholder {
+    @apply text-muted-foreground;
+  }
+
+  /* Social icon */
+  .social-icon {
+    @apply w-10 h-10 flex items-center justify-center rounded-full bg-secondary border border-border;
+    @apply transition-all duration-300 hover:border-primary hover:bg-primary hover:text-white;
+    @apply hover:scale-110;
+  }
+
+  .social-icon:hover {
+    box-shadow: var(--shadow-green);
+  }
+
+  /* Nav link */
+  .nav-link {
+    @apply relative px-4 py-2 text-muted-foreground transition-colors duration-300;
+    @apply hover:text-foreground;
+  }
+
+  .nav-link.active {
+    @apply text-primary;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    @apply w-full;
   }
 }
 
 @layer utilities {
-
-  /* ===== Spinner (Matches Your Image) ===== */
-  .loader {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 4px solid rgba(255, 255, 255, 0.25);
-    border-top: 4px solid rgba(255, 255, 255, 0.95);
-    animation: spin 0.9s linear infinite;
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(142 70% 45%) 0%, hsl(142 70% 35%) 100%);
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
+  /* Background patterns */
+  .bg-grid {
+    background-image: 
+      linear-gradient(hsl(0 0% 90% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 90% / 0.5) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 
-  /* =============================== */
-
-  .primary-gradient {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
+  .bg-dots {
+    background-image: radial-gradient(hsl(0 0% 80%) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
-  .primary-text {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Backdrop blur */
+  .glass {
+    @apply bg-background/80 backdrop-blur-lg;
   }
 
-  .card-gradient {
-    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-
-  .text-profit {
-    color: hsl(142 76% 45%);
-  }
-
-  .scrollbar-hide {
+  .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  /* Green backgrounds */
+  .bg-green-primary {
+    background-color: hsl(142 70% 45%);
   }
+
+  .bg-green-light {
+    background-color: hsl(142 70% 95%);
+  }
+
+  .text-green-primary {
+    color: hsl(142 70% 45%);
+  }
+
+  .border-green-primary {
+    border-color: hsl(142 70% 45%);
+  }
+}
+
+/* ===== LOVABLE BADGE HIDER ===== */
+/* Hide Lovable badge completely */
+
+/* Hide by class patterns */
+div:has(> a[href*="lovable"]),
+a[href*="lovable"],
+div:has(> img[alt*="Lovable"]),
+img[alt*="Lovable"],
+div:has(> span:contains("Lovable")),
+[class*="lovable"],
+[id*="lovable"],
+[data-testid*="lovable"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  z-index: -9999 !important;
+}
+
+/* More specific selectors for common Lovable badge positions */
+div.fixed.bottom-0.right-0,
+div.fixed.bottom-2.right-2,
+div.fixed.bottom-4.right-4,
+a.fixed.bottom-0.right-0,
+a.fixed.bottom-2.right-2,
+a.fixed.bottom-4.right-4 {
+  display: none !important;
+}
+
+/* Hide any element that might be the Lovable watermark */
+[style*="z-index: 9999"][style*="fixed"][style*="bottom"],
+[style*="z-index: 9999"][style*="fixed"][style*="right"] {
+  display: none !important;
+}
+
+/* Target by common Lovable patterns */
+[class*="absolute"][class*="bottom"][class*="right"]:has(a[href*="lovable"]),
+[class*="fixed"][class*="bottom"][class*="right"]:has(a[href*="lovable"]) {
+  display: none !important;
+}
+
+/* Specific to Lovable's typical badge */
+a[target="_blank"][rel="noopener noreferrer"]:has(span:contains("Lovable")),
+a[target="_blank"][rel="noopener noreferrer"]:has(img[alt*="Lovable"]) {
+  display: none !important;
+}
+
+/* Hide by common Lovable text patterns */
+a:has(span:contains("Built with")),
+a:has(span:contains("Lovable")),
+div:has(span:contains("Built with Lovable")) {
+  display: none !important;
+}
+
+/* Hide the entire container if it contains Lovable */
+div:has(a[href*="lovable"]),
+div:has(img[alt*="Lovable"]) {
+  display: none !important;
 }

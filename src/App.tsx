@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
@@ -23,6 +23,66 @@ import NotFound from "./pages/NotFound";
 import Announcements from "./pages/Announcements";
 
 const queryClient = new QueryClient();
+
+// Meta Tags Updater Component
+const MetaTagsUpdater = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Get the referral code from URL if present
+    const params = new URLSearchParams(location.search);
+    const refCode = params.get('ref');
+    
+    // Only update if this is a referral link
+    if (refCode && (location.pathname === '/signup' || location.pathname === '/')) {
+      const url = window.location.href;
+      const title = `Join DSW with referral code ${refCode} and get 145 ETB bonus!`;
+      const description = `Use referral code ${refCode} to join DSW and get 145 ETB bonus after your first deposit! Start earning passive income today.`;
+      const imageUrl = `https://wsd-onlingoods-promoting267000-lamb.vercel.app/og-image.png?ref=${refCode}`;
+      
+      // Update title
+      document.title = title;
+      
+      // Helper function to update or create meta tags
+      const updateOrCreateMetaTag = (attr: string, name: string, content: string) => {
+        // Try to find existing tag
+        let element = document.querySelector(`meta[${attr}="${name}"]`);
+        
+        if (element) {
+          element.setAttribute('content', content);
+        } else {
+          // Create new tag if it doesn't exist
+          element = document.createElement('meta');
+          element.setAttribute(attr, name);
+          element.setAttribute('content', content);
+          document.head.appendChild(element);
+        }
+      };
+      
+      // Update all relevant meta tags
+      updateOrCreateMetaTag('name', 'title', title);
+      updateOrCreateMetaTag('property', 'og:title', title);
+      updateOrCreateMetaTag('name', 'twitter:title', title);
+      updateOrCreateMetaTag('name', 'telegram:title', title);
+      
+      updateOrCreateMetaTag('name', 'description', description);
+      updateOrCreateMetaTag('property', 'og:description', description);
+      updateOrCreateMetaTag('name', 'twitter:description', description);
+      
+      updateOrCreateMetaTag('property', 'og:url', url);
+      updateOrCreateMetaTag('name', 'twitter:url', url);
+      
+      updateOrCreateMetaTag('property', 'og:image', imageUrl);
+      updateOrCreateMetaTag('name', 'twitter:image', imageUrl);
+      updateOrCreateMetaTag('property', 'og:image:alt', `DSW Referral Code ${refCode}`);
+      
+      // Ensure site name is correct
+      updateOrCreateMetaTag('property', 'og:site_name', 'DSW - Digital Smart Work');
+    }
+  }, [location]);
+  
+  return null;
+};
 
 // Inner component that can access auth context
 const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
@@ -55,6 +115,8 @@ const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
 
   return (
     <BrowserRouter>
+      {/* MetaTagsUpdater goes here to access useLocation hook */}
+      <MetaTagsUpdater />
       <Routes>
         <Route path="/" element={<Index />} />
         

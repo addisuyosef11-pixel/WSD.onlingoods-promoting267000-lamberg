@@ -1,27 +1,162 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/logo.ico" />
+    <link rel="shortcut icon" href="/logo.ico" type="image/x-icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>DSW</title>
-    <meta name="description" content="DSW - Earn passive income through smart investments" />
+    
+    <!-- Primary Meta Tags -->
+    <title>DSW - Digital Smart Work</title>
+    <meta name="title" content="DSW - Digital Smart Work" />
+    <meta name="description" content="Join DSW and earn daily income through smart investments. Start earning passive income today with our referral program. Get 145 ETB bonus for every friend you invite!" />
+    <meta name="keywords" content="DSW, Digital Smart Work, earn money, passive income, investment, referral program, Ethiopia" />
     <meta name="author" content="DSW" />
-
-    <meta property="og:title" content="DSW" />
-    <meta property="og:description" content="DSW - Earn passive income through smart investments" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Facebook / Telegram -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
+    <meta property="og:url" content="https://wsd-onlingoods-promoting267000-lamb.vercel.app/" />
+    <meta property="og:title" content="DSW - Digital Smart Work" />
+    <meta property="og:description" content="Join DSW and earn daily income through smart investments. Get 145 ETB bonus for every friend you invite! Start earning passive income today." />
+    <meta property="og:image" content="https://wsd-onlingoods-promoting267000-lamb.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="DSW - Digital Smart Work" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:url" content="https://wsd-onlingoods-promoting267000-lamb.vercel.app/" />
+    <meta name="twitter:title" content="DSW - Digital Smart Work" />
+    <meta name="twitter:description" content="Join DSW and earn daily income through smart investments. Get 145 ETB bonus for every friend you invite!" />
+    <meta name="twitter:image" content="https://wsd-onlingoods-promoting267000-lamb.vercel.app/og-image.png" />
+    <meta name="twitter:site" content="@DSWonline_suport" />
+    <meta name="twitter:creator" content="@DSWonline_suport" />
+    
+    <!-- Telegram specific -->
+    <meta property="telegram:channel" content="@DSWonline_suport" />
+    <meta name="telegram:title" content="DSW - Digital Smart Work" />
+    
+    <!-- WhatsApp specific -->
+    <meta property="og:image:alt" content="DSW - Digital Smart Work" />
+    
+    <!-- Theme color -->
+    <meta name="theme-color" content="#22C55E" />
+    <meta name="msapplication-TileColor" content="#22C55E" />
+    
+    <!-- Apple touch icon -->
+    <link rel="apple-touch-icon" href="/logo.ico" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://wsd-onlingoods-promoting267000-lamb.vercel.app/" />
+    
+    <!-- Preconnect to important domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Remove any Lovable meta tags with script -->
+    <script>
+      // Remove any Lovable meta tags and branding
+      (function() {
+        // Run immediately
+        removeLovableTags();
+        
+        // Also run after DOM is loaded
+        document.addEventListener('DOMContentLoaded', removeLovableTags);
+        
+        // And run again after a delay
+        setTimeout(removeLovableTags, 1000);
+        setTimeout(removeLovableTags, 3000);
+        
+        function removeLovableTags() {
+          // Remove generator meta
+          const generator = document.querySelector('meta[name="generator"]');
+          if (generator && generator.content && generator.content.includes('Lovable')) {
+            generator.remove();
+          }
+          
+          // Remove any meta with Lovable in content
+          const allMetas = document.querySelectorAll('meta');
+          allMetas.forEach(meta => {
+            if (meta.content && meta.content.includes('Lovable')) {
+              meta.remove();
+            }
+          });
+          
+          // Remove og:site_name if it contains Lovable
+          const ogSiteName = document.querySelector('meta[property="og:site_name"]');
+          if (ogSiteName && ogSiteName.content && ogSiteName.content.includes('Lovable')) {
+            ogSiteName.setAttribute('content', 'DSW - Digital Smart Work');
+          }
+          
+          // Remove any Lovable script tags
+          const scripts = document.querySelectorAll('script');
+          scripts.forEach(script => {
+            if (script.src && script.src.includes('lovable')) {
+              script.remove();
+            }
+          });
+          
+          // Remove any Lovable divs
+          const lovableDivs = document.querySelectorAll('div[class*="lovable"], div[id*="lovable"]');
+          lovableDivs.forEach(div => div.remove());
+          
+          // Remove Lovable badge if it appears
+          const badges = document.querySelectorAll('a[href*="lovable"], img[alt*="Lovable"], span:contains("Lovable")');
+          badges.forEach(badge => {
+            if (badge instanceof HTMLElement) {
+              badge.style.display = 'none';
+              badge.remove();
+            }
+          });
+        }
+      })();
+    </script>
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Additional script to catch any late-loading Lovable elements -->
+    <script>
+      (function() {
+        // Observe DOM changes to catch dynamically added Lovable elements
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                // Check if the element or its children contain Lovable
+                if (node instanceof HTMLElement) {
+                  if (node.outerHTML && node.outerHTML.includes('Lovable')) {
+                    node.remove();
+                  }
+                  
+                  // Check for Lovable links
+                  const lovableLinks = node.querySelectorAll('a[href*="lovable"]');
+                  lovableLinks.forEach(link => link.remove());
+                  
+                  // Check for Lovable images
+                  const lovableImages = node.querySelectorAll('img[alt*="Lovable"]');
+                  lovableImages.forEach(img => img.remove());
+                }
+              }
+            });
+          });
+        });
+        
+        // Start observing
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
+        // Stop observing after 10 seconds to save resources
+        setTimeout(() => observer.disconnect(), 10000);
+      })();
+    </script>
   </body>
 </html>
-
