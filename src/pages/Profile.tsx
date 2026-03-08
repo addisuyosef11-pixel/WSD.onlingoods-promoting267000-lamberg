@@ -4,11 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { 
-  Crown, LogOut, ChevronRight, Settings, HelpCircle, 
-  FileText, MessageCircle, Send, Banknote, Calendar, Clock, 
-  History, User, Users, Copy, Phone, Wallet, Gift, TrendingUp,
-  Award, CheckCircle, AlertCircle
+import {
+  Crown, LogOut, ChevronRight, Settings, HelpCircle,
+  FileText, MessageCircle, Send, Calendar, Clock,
+  History, Copy, Eye, EyeOff, TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -17,94 +16,60 @@ import { SuccessModal } from '@/components/SuccessModal';
 import { Spinner } from '@/components/Spinner';
 
 interface DailyIncome {
-  id: string;
-  user_id: string;
   today_income: number;
   yesterday_income: number;
-  last_income_date: string | null;
-  last_transfer_at: string | null;
-  updated_at: string;
+  last_income_transfer_at: string | null;
+  last_yesterday_claim_at: string | null;
 }
 
-// Help Center Modal Component
 const HelpCenterModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { t } = useLanguage();
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <div className="p-2 rounded-full bg-blue-500 text-white">
-              <HelpCircle className="w-4 h-4" />
-            </div>
+          <DialogTitle className="flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-emerald-600" />
             {t('Help Center')}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 py-4">
+        <div className="space-y-2 py-3">
           <button
-            onClick={() => window.open('https://t.me/DSWonline_suport', '_blank')}
+            onClick={() => window.open('https://t.me/Tiktokshoponline_suport', '_blank')}
             className="w-full flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <div className="p-2 rounded-full bg-blue-500 text-white">
-              <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-5 h-5 text-blue-600" />
+            <div className="text-left">
+              <p className="font-medium text-sm">{t('Official Support')}</p>
+              <p className="text-xs text-muted-foreground">@DSW_Support</p>
             </div>
-            <div className="text-left flex-1">
-              <p className="font-medium text-gray-800">Official Support</p>
-              <p className="text-xs text-gray-500">@DSWonline_suport</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
           </button>
-
           <button
             onClick={() => window.open('https://t.me/etonlinejob1', '_blank')}
             className="w-full flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
           >
-            <div className="p-2 rounded-full bg-purple-500 text-white">
-              <Users className="w-5 h-5" />
+            <Send className="w-5 h-5 text-purple-600" />
+            <div className="text-left">
+              <p className="font-medium text-sm">{t('Public Channel')}</p>
+              <p className="text-xs text-muted-foreground">DSW Channel</p>
             </div>
-            <div className="text-left flex-1">
-              <p className="font-medium text-gray-800">Public Channel</p>
-              <p className="text-xs text-gray-500">DSW Channel</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
           </button>
-
           <button
             onClick={() => window.open('https://t.me/+Jihv4uEOv0o0M2U0', '_blank')}
             className="w-full flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
           >
-            <div className="p-2 rounded-full bg-green-500 text-white">
-              <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-5 h-5 text-green-600" />
+            <div className="text-left">
+              <p className="font-medium text-sm">{t('Discussion Group')}</p>
+              <p className="text-xs text-muted-foreground">DSW Group</p>
             </div>
-            <div className="text-left flex-1">
-              <p className="font-medium text-gray-800">Discussion Group</p>
-              <p className="text-xs text-gray-500">DSW Group</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
           </button>
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
-
-// Profile Menu Item Component - Reduced size
-const ProfileMenuItem: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}> = ({ icon, label, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-    >
-      <div className="flex items-center gap-2">
-        <div className="text-green-600">{icon}</div>
-        <span className="text-sm text-gray-700">{label}</span>
-      </div>
-      <ChevronRight className="w-4 h-4 text-gray-400" />
-    </button>
   );
 };
 
@@ -119,8 +84,15 @@ const Profile = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [copied, setCopied] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [timeUntilNextTransfer, setTimeUntilNextTransfer] = useState<string>('');
+  const [rewardBalance, setRewardBalance] = useState(0);
+  const [timeUntilNextTransfer, setTimeUntilNextTransfer] = useState('');
+
+  // Independent eye toggle states for each field
+  const [showBalanceEye, setShowBalanceEye] = useState(false);
+  const [showWithdrawableEye, setShowWithdrawableEye] = useState(false);
+  const [showRewardEye, setShowRewardEye] = useState(false);
+  const [showTodayEye, setShowTodayEye] = useState(false);
+  const [showYesterdayEye, setShowYesterdayEye] = useState(false);
 
   const showSuccess = (message: string) => {
     setSuccessMessage(message);
@@ -133,170 +105,82 @@ const Profile = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch daily income data
   const fetchDailyIncome = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_daily_income')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching daily income:', error);
-      }
-
-      if (data) {
-        setDailyIncome(data);
-      } else {
-        // Create initial record if it doesn't exist
-        const { data: newData, error: insertError } = await supabase
-          .from('user_daily_income')
-          .insert({
-            user_id: user.id,
-            today_income: 0,
-            yesterday_income: 0
-          })
-          .select()
-          .single();
-
-        if (!insertError && newData) {
-          setDailyIncome(newData);
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchDailyIncome:', error);
+      await supabase.functions.invoke('transfer-income');
+    } catch (e) {
+      console.log('Income transfer check:', e);
     }
+
+    const { data } = await supabase
+      .from('user_daily_income')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data) {
+      setDailyIncome({
+        today_income: data.today_income,
+        yesterday_income: data.yesterday_income,
+        last_income_transfer_at: data.last_income_transfer_at,
+        last_yesterday_claim_at: data.last_yesterday_claim_at,
+      });
+    }
+
+    await refreshProfile();
+  };
+
+  const fetchRewardBalance = async () => {
+    if (!user) return;
+    
+    // Sum gift code claims
+    const { data: giftClaims } = await supabase
+      .from('gift_code_claims')
+      .select('amount')
+      .eq('user_id', user.id);
+
+    // Sum referral bonus transactions
+    const { data: referralBonuses } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('type', 'referral_bonus')
+      .eq('status', 'completed');
+
+    const giftTotal = giftClaims?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
+    const referralTotal = referralBonuses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+    setRewardBalance(giftTotal + referralTotal);
   };
 
   useEffect(() => {
     fetchDailyIncome();
+    fetchRewardBalance();
   }, [user]);
 
-  // Check and process automatic transfers
   useEffect(() => {
-    const checkAndProcessTransfers = async () => {
-      if (!user || !dailyIncome) return;
+    if (!dailyIncome?.last_income_transfer_at) return;
 
+    const updateTimer = () => {
       const now = new Date();
-      const lastTransfer = dailyIncome.last_transfer_at ? new Date(dailyIncome.last_transfer_at) : null;
+      const lastTransfer = new Date(dailyIncome.last_income_transfer_at!);
+      const hoursSince = (now.getTime() - lastTransfer.getTime()) / (1000 * 60 * 60);
 
-      // If 24 hours have passed since last transfer, move today to yesterday
-      if (lastTransfer) {
-        const hoursSinceLastTransfer = (now.getTime() - lastTransfer.getTime()) / (1000 * 60 * 60);
-        
-        if (hoursSinceLastTransfer >= 24) {
-          await processDailyTransfer();
-        } else {
-          // Update countdown timer
-          const hoursLeft = 24 - hoursSinceLastTransfer;
-          const minsLeft = Math.floor((hoursLeft % 1) * 60);
-          setTimeUntilNextTransfer(`${Math.floor(hoursLeft)}h ${minsLeft}m`);
-        }
-      } else if (dailyIncome.today_income > 0) {
-        // First time setup - set last_transfer_at to now
-        await supabase
-          .from('user_daily_income')
-          .update({ last_transfer_at: now.toISOString() })
-          .eq('user_id', user.id);
+      if (hoursSince < 24) {
+        const hoursLeft = 24 - hoursSince;
+        const h = Math.floor(hoursLeft);
+        const m = Math.floor((hoursLeft % 1) * 60);
+        setTimeUntilNextTransfer(`${h}h ${m}m`);
+      } else {
+        setTimeUntilNextTransfer('');
       }
     };
 
-    const interval = setInterval(checkAndProcessTransfers, 60000); // Check every minute
-    checkAndProcessTransfers();
-
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
-  }, [user, dailyIncome]);
-
-  // Process daily transfer (today -> yesterday)
-  const processDailyTransfer = async () => {
-    if (!user || !dailyIncome) return;
-
-    setIsProcessing(true);
-
-    try {
-      const now = new Date().toISOString();
-
-      // Move today's income to yesterday and reset today to 0
-      const { error } = await supabase
-        .from('user_daily_income')
-        .update({
-          yesterday_income: dailyIncome.today_income,
-          today_income: 0,
-          last_transfer_at: now,
-          updated_at: now
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Refresh data
-      await fetchDailyIncome();
-      
-      showSuccess('Daily income moved to yesterday!');
-    } catch (error) {
-      console.error('Error processing daily transfer:', error);
-      showSuccess('Failed to process daily transfer');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Transfer yesterday's income to withdrawable balance
-  const transferToWithdrawable = async () => {
-    if (!user || !dailyIncome || dailyIncome.yesterday_income <= 0) return;
-
-    setIsProcessing(true);
-
-    try {
-      // Add yesterday's income to withdrawable balance
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          withdrawable_balance: (profile?.withdrawable_balance || 0) + dailyIncome.yesterday_income
-        })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          amount: dailyIncome.yesterday_income,
-          type: 'income_transfer',
-          status: 'completed',
-          description: 'Yesterday\'s income transferred to withdrawable balance'
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Reset yesterday's income to 0
-      const { error: resetError } = await supabase
-        .from('user_daily_income')
-        .update({
-          yesterday_income: 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (resetError) throw resetError;
-
-      // Refresh data
-      await fetchDailyIncome();
-      await refreshProfile();
-      
-      showSuccess(`${dailyIncome.yesterday_income} ETB transferred to withdrawable balance!`);
-    } catch (error) {
-      console.error('Error transferring to withdrawable:', error);
-      showSuccess('Failed to transfer to withdrawable balance');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  }, [dailyIncome?.last_income_transfer_at]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -319,272 +203,230 @@ const Profile = () => {
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Spinner />
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   const menuItems = [
-    { icon: <History className="w-4 h-4" />, label: t('Transaction History'), onClick: () => navigate('/transactions') },
-    { icon: <Settings className="w-4 h-4" />, label: t('Settings'), onClick: () => navigate('/settings') },
-    { icon: <HelpCircle className="w-4 h-4" />, label: t('Help Center'), onClick: () => setShowHelpCenter(true) },
-    { icon: <FileText className="w-4 h-4" />, label: t('Terms & Conditions'), onClick: () => setShowTerms(true) },
+    { icon: <History className="w-5 h-5" />, label: t('Transaction History'), onClick: () => navigate('/transactions'), iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
+    { icon: <Settings className="w-5 h-5" />, label: t('Settings'), onClick: () => navigate('/settings'), iconBg: 'bg-orange-50', iconColor: 'text-orange-600' },
+    { icon: <HelpCircle className="w-5 h-5" />, label: t('Help Center'), onClick: () => setShowHelpCenter(true), iconBg: 'bg-purple-50', iconColor: 'text-purple-600' },
+    { icon: <FileText className="w-5 h-5" />, label: t('Terms & Conditions'), onClick: () => setShowTerms(true), iconBg: 'bg-teal-50', iconColor: 'text-teal-600' },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 pb-24">
-      <div className="max-w-md mx-auto">
-        {/* Simple Header */}
-        <h1 className="text-xl font-bold text-gray-800 mb-4">My Profile</h1>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Telebirr-style Header */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
+        {/* Filled wave patterns like BalanceCard */}
+        <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 300" preserveAspectRatio="none">
+          <path d="M0,120 C100,170 200,70 300,120 C350,145 400,120 400,120 L400,300 L0,300 Z" fill="white" />
+          <path d="M0,160 C80,210 180,110 280,170 C340,200 400,160 400,160 L400,300 L0,300 Z" fill="white" opacity="0.5" />
+        </svg>
+        <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-10 left-0 w-28 h-28 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            {/* Simple Avatar */}
-            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-lg">
-              {profile.name?.charAt(0).toUpperCase() || 'U'}
+        <div className="relative z-10 pt-8 pb-10 px-5 max-w-md mx-auto">
+          {/* User info */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30 backdrop-blur-sm">
+              <span className="text-2xl font-bold text-white">
+                {profile.name?.charAt(0).toUpperCase() || 'U'}
+              </span>
             </div>
-            
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-gray-800">{profile.name}</h2>
-                {profile.current_vip_level > 0 && (
-                  <Crown className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <h2 className="text-lg font-bold text-white">{t('Selam')}, {profile.name}</h2>
+                {profile.current_vip_level && profile.current_vip_level > 0 && (
+                  <span className="px-2 py-0.5 bg-yellow-400/90 rounded-full text-[10px] font-bold text-yellow-900 flex items-center gap-0.5">
+                    <Crown className="w-2.5 h-2.5" /> VIP {profile.current_vip_level}
+                  </span>
                 )}
               </div>
-              
-              {/* Phone with Copy */}
-              <div className="flex items-center gap-1 mt-1">
-                <Phone className="w-3 h-3 text-gray-400" />
-                <p className="text-xs text-gray-600">{maskPhone(profile.phone)}</p>
-                <button
-                  onClick={() => copyToClipboard(profile.phone)}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <Copy className="w-3 h-3 text-gray-400" />
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-xs text-white/70">{maskPhone(profile.phone)}</span>
+                <button onClick={() => copyToClipboard(profile.phone)} className="p-0.5">
+                  <Copy className="w-3 h-3 text-white/50" />
+                </button>
+                {copied && <span className="text-[10px] text-yellow-300 ml-1">Copied!</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Balance - centered */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="text-sm text-white/70">{t('Balance')} (ETB)</span>
+              <button onClick={() => setShowBalanceEye(!showBalanceEye)} className="p-0.5">
+                {showBalanceEye ? <Eye className="w-4 h-4 text-white/70" /> : <EyeOff className="w-4 h-4 text-white/70" />}
+              </button>
+            </div>
+            <p className="text-4xl font-bold text-white tracking-wider">
+              {showBalanceEye ? profile.balance.toLocaleString() : '***'}
+              <span className="text-base font-normal text-white/60 ml-1">ETB</span>
+            </p>
+          </div>
+
+          {/* 2-column: Withdrawable & Reward */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center bg-white/10 rounded-xl py-3 px-2 backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-sm font-bold text-white">{t('Withdrawable')}</span>
+                <button onClick={() => setShowWithdrawableEye(!showWithdrawableEye)} className="p-0.5">
+                  {showWithdrawableEye ? <Eye className="w-3 h-3 text-white/60" /> : <EyeOff className="w-3 h-3 text-white/60" />}
                 </button>
               </div>
-            </div>
-
-            {/* VIP Badge */}
-            {profile.current_vip_level > 0 && (
-              <div className="px-2 py-1 bg-green-100 rounded text-xs font-medium text-green-600">
-                VIP {profile.current_vip_level}
-              </div>
-            )}
-          </div>
-
-          {/* Copy Feedback */}
-          {copied && (
-            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" /> Copied!
-            </p>
-          )}
-        </div>
-
-        {/* Balance Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-1 mb-2">
-              <Wallet className="w-4 h-4 text-green-500" />
-              <p className="text-xs text-gray-500">Balance</p>
-            </div>
-            <p className="text-lg font-bold text-gray-800">{profile.balance.toLocaleString()} ETB</p>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-1 mb-2">
-              <Banknote className="w-4 h-4 text-green-500" />
-              <p className="text-xs text-gray-500">Withdrawable</p>
-            </div>
-            <p className="text-lg font-bold text-gray-800">{profile.withdrawable_balance.toLocaleString()} ETB</p>
-          </div>
-        </div>
-
-        {/* Daily Income Display - Corrected Logic Flow */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {/* Today's Income */}
-          <div className="p-4 rounded-lg shadow-sm" style={{ backgroundColor: '#F3E5F5' }}>
-            <p className="text-xs font-medium text-gray-600 mb-1">Today's Income</p>
-            <p className="text-xl font-bold text-gray-800">
-              {dailyIncome?.today_income?.toLocaleString() || '0'} ETB
-            </p>
-            
-            {dailyIncome?.today_income > 0 ? (
-              <div className="mt-2">
-                <p className="text-xs font-medium text-gray-600">
-                  ⏳ Auto-moves to yesterday in 24h
-                </p>
-                {timeUntilNextTransfer && (
-                  <p className="text-xs text-green-600 mt-1">
-                    Next transfer in: {timeUntilNextTransfer}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="text-xs font-medium text-gray-600 mt-2">
-                Start earning today
+              <p className="text-lg font-bold text-white">
+                {showWithdrawableEye ? profile.withdrawable_balance.toLocaleString() : '***'}
+                <span className="text-[10px] font-normal text-white/50 ml-0.5">ETB</span>
               </p>
-            )}
+            </div>
+            <div className="text-center bg-white/10 rounded-xl py-3 px-2 backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-sm font-bold text-white">{t('Reward')}</span>
+                <button onClick={() => setShowRewardEye(!showRewardEye)} className="p-0.5">
+                  {showRewardEye ? <Eye className="w-3 h-3 text-white/60" /> : <EyeOff className="w-3 h-3 text-white/60" />}
+                </button>
+              </div>
+              <p className="text-lg font-bold text-yellow-300">
+                {showRewardEye ? rewardBalance.toLocaleString() : '***'}
+                <span className="text-[10px] font-normal text-yellow-300/60 ml-0.5">ETB</span>
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Yesterday's Income */}
-          <div className="p-4 rounded-lg shadow-sm" style={{ backgroundColor: '#FFF3E0' }}>
-            <p className="text-xs font-medium text-gray-600 mb-1">Yesterday's Income</p>
-            <p className="text-xl font-bold text-gray-800">
-              {dailyIncome?.yesterday_income?.toLocaleString() || '0'} ETB
-            </p>
-            
-            {dailyIncome?.yesterday_income > 0 ? (
-              <button
-                onClick={transferToWithdrawable}
-                disabled={isProcessing}
-                className="mt-2 w-full py-1.5 px-3 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-              >
-                {isProcessing ? (
-                  <>
-                    <Spinner size="sm" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Gift className="w-3 h-3" />
-                    <span>Claim to Withdrawable</span>
-                  </>
-                )}
+        {/* Bottom wave separator */}
+        <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 40" preserveAspectRatio="none" style={{ height: '20px' }}>
+          <path d="M0,20 C360,40 720,0 1080,25 C1260,32 1380,15 1440,20 L1440,40 L0,40 Z" fill="#f9fafb" />
+        </svg>
+      </div>
+
+      {/* Scrolling ticker */}
+      <div className="bg-yellow-400 overflow-hidden py-1.5">
+        <div className="whitespace-nowrap animate-marquee inline-block text-xs font-medium text-yellow-900">
+          🎉 WELCOME TO DSW! EARN DAILY INCOME WITH YOUR VIP MEMBERSHIP! &nbsp;&nbsp;&nbsp; ONE APP FOR ALL YOUR NEEDS! &nbsp;&nbsp;&nbsp; 🚀 UPGRADE YOUR VIP LEVEL TODAY! &nbsp;&nbsp;&nbsp;
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto px-4 mt-3">
+        {/* Daily Income Cards */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="bg-white rounded-xl p-3 shadow-sm border-2" style={{ borderColor: '#B0FC38' }}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-green-600" />
+                <span className="text-xs font-bold text-gray-800">{t("Today's Income")}</span>
+              </div>
+              <button onClick={() => setShowTodayEye(!showTodayEye)} className="p-0.5">
+                {showTodayEye ? <Eye className="w-3 h-3 text-gray-400" /> : <EyeOff className="w-3 h-3 text-gray-400" />}
               </button>
-            ) : (
-              <div className="mt-2">
-                <p className="text-xs font-medium text-gray-600">
-                  No income yesterday
-                </p>
-                {dailyIncome?.today_income > 0 && (
-                  <p className="text-xs text-green-600 mt-1">
-                    Will be available tomorrow
-                  </p>
-                )}
-              </div>
+            </div>
+            <p className="text-sm font-bold text-gray-800">
+              {showTodayEye ? (dailyIncome?.today_income || 0).toLocaleString() : '***'} <span className="text-[10px] font-normal text-gray-400">ETB</span>
+            </p>
+            {timeUntilNextTransfer && (dailyIncome?.today_income || 0) > 0 && (
+              <p className="text-[9px] text-gray-400 mt-0.5">⏳ {timeUntilNextTransfer}</p>
             )}
+          </div>
+
+          <div className="bg-white rounded-xl p-3 shadow-sm border-2" style={{ borderColor: '#B0FC38' }}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-green-600" />
+                <span className="text-xs font-bold text-gray-800">{t("Yesterday's Income")}</span>
+              </div>
+              <button onClick={() => setShowYesterdayEye(!showYesterdayEye)} className="p-0.5">
+                {showYesterdayEye ? <Eye className="w-3 h-3 text-gray-400" /> : <EyeOff className="w-3 h-3 text-gray-400" />}
+              </button>
+            </div>
+            <p className="text-sm font-bold text-gray-800">
+              {showYesterdayEye ? (dailyIncome?.yesterday_income || 0).toLocaleString() : '***'} <span className="text-[10px] font-normal text-gray-400">ETB</span>
+            </p>
+            <p className="text-[9px] text-gray-400 mt-0.5">
+              {(dailyIncome?.yesterday_income || 0) > 0 ? t('Auto-claimed after 24h') : t('Will be available tomorrow')}
+            </p>
           </div>
         </div>
 
-        {/* Income Flow Explanation */}
-        <div className="bg-blue-50 rounded-lg p-3 mb-6 border border-blue-200">
+        {/* Income Flow Info */}
+        <div className="bg-green-50 rounded-xl p-2.5 mb-3 border border-green-100">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-medium text-blue-800">How daily income works:</p>
-              <p className="text-xs text-blue-600 mt-1">
-                • Today's income automatically moves to "Yesterday's Income" after 24h<br />
-                • You can then claim yesterday's income to your withdrawable balance<br />
-                • Claimed income becomes available for withdrawal
-              </p>
-            </div>
+            <TrendingUp className="w-3.5 h-3.5 text-green-600 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-green-700 leading-relaxed">
+              {t("Today's income")} → 24h → {t("Yesterday's Income")} + {t('Withdrawable')} → 24h → {t('Cleared')}
+            </p>
           </div>
         </div>
 
         {/* Menu Items */}
-        <div className="space-y-2 mb-6">
-          {menuItems.map((item, index) => (
-            <ProfileMenuItem key={index} {...item} />
+        <div className="space-y-1.5 mb-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className="w-full flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-foreground">
+                <div className={`w-9 h-9 rounded-lg ${item.iconBg} flex items-center justify-center ${item.iconColor}`}>
+                  {item.icon}
+                </div>
+                <span className="text-sm font-bold">{item.label}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
           ))}
         </div>
 
-        {/* Sign Out Button */}
-        <button
+        {/* Sign Out */}
+        <Button
           onClick={handleSignOut}
-          className="w-full bg-red-500 hover:bg-red-600 text-white h-10 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          variant="outline"
+          className="w-full border-red-200 text-red-500 hover:bg-red-50 text-sm h-10"
         >
-          <LogOut className="w-4 h-4" />
-          Sign Out
-        </button>
+          <LogOut className="w-4 h-4 mr-2" />
+          {t('Sign Out')}
+        </Button>
 
-        {/* App Version */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          DSW App v1.0.0
-        </p>
+        <p className="text-center text-[10px] text-gray-400 mt-3">DSW App v1.0.0</p>
       </div>
 
       <BottomNavigation />
 
-      {/* Help Center Modal */}
       <HelpCenterModal isOpen={showHelpCenter} onClose={() => setShowHelpCenter(false)} />
 
-      {/* Terms & Conditions Modal */}
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto bg-white">
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <div className="p-2 rounded-full bg-orange-500 text-white">
-                <FileText className="w-4 h-4" />
-              </div>
-              Terms & Conditions
-            </DialogTitle>
+            <DialogTitle>{t('Terms & Conditions')}</DialogTitle>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">1. Introduction</p>
-              <p className="text-sm text-gray-600">Welcome to DSW Platform. By using our services, you agree to these terms and conditions.</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">2. Account Registration</p>
-              <p className="text-sm text-gray-600">Users must provide accurate information during registration. One account per user only.</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">3. VIP Membership</p>
-              <p className="text-sm text-gray-600">VIP packages grant access to earning tasks. Membership is non-refundable once purchased.</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">4. Income Structure</p>
-              <p className="text-sm text-gray-600">Daily income accumulates in "Today's Income", moves to "Yesterday's Income" after 24 hours, and can then be claimed to withdrawable balance.</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">5. Deposits & Withdrawals</p>
-              <p className="text-sm text-gray-600">Deposits require admin approval. Withdrawals processed within 24-48 hours.</p>
-            </div>
-
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-800 mb-1">6. Privacy</p>
-              <p className="text-sm text-gray-600">User data is protected and encrypted.</p>
-            </div>
-
-            <div className="flex items-center space-x-2 pt-4 border-t border-gray-200">
-              <Checkbox 
-                id="terms" 
-                checked={termsAccepted} 
-                onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} 
-                className="border-2 border-gray-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+          <div className="space-y-3 py-3 text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground">1. Introduction</p>
+            <p>Welcome to DSW Platform. By using our services, you agree to these terms.</p>
+            <p className="font-semibold text-foreground">2. Account Registration</p>
+            <p>Users must provide accurate information. One account per user.</p>
+            <p className="font-semibold text-foreground">3. VIP Membership</p>
+            <p>VIP packages grant access to earning tasks. Non-refundable once purchased.</p>
+            <p className="font-semibold text-foreground">4. Income Structure</p>
+            <p>Daily income moves to "Yesterday's Income" after 24h, then auto-transfers to withdrawable balance.</p>
+            <p className="font-semibold text-foreground">5. Deposits & Withdrawals</p>
+            <p>Deposits require admin approval. Withdrawals processed within 24-48 hours.</p>
+            <p className="font-semibold text-foreground">6. Privacy</p>
+            <p>User data is protected and encrypted.</p>
+            <div className="flex items-center space-x-2 pt-3 border-t">
+              <Checkbox
+                id="terms"
+                checked={termsAccepted}
+                onCheckedChange={(checked) => setTermsAccepted(!!checked)}
               />
-              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                I agree to the Terms & Conditions
-              </label>
+              <label htmlFor="terms" className="text-sm">I accept the terms and conditions</label>
             </div>
-
-            <button
-              className="w-full bg-green-600 hover:bg-green-700 text-white h-10 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              disabled={!termsAccepted}
-              onClick={() => {
-                showSuccess('Terms accepted successfully!');
-                setShowTerms(false);
-              }}
-            >
-              Accept & Continue
-            </button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Success Modal */}
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}

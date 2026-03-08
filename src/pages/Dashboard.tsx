@@ -11,7 +11,6 @@ import { AnnouncementModal } from '@/components/AnnouncementModal';
 import { TelegramModal } from '@/components/TelegramModal';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import VipCarousel from '@/components/VipCarousel';
-import RecentCommissions from '@/components/RecentCommissions';
 import AboutSection from '@/components/AboutSection';
 import { Spinner } from '@/components/Spinner';
 
@@ -20,10 +19,12 @@ import withdrawImage from '@/assets/withdraw.png';
 import depositImage from '@/assets/deposit.png';
 import giftCodeImage from '@/assets/gift-code.png';
 import addsImage from '@/assets/adds.png';
+import walletImage from '@/assets/wallet_1.png';
+import customerServiceImage from '@/assets/custumer_service.png';
 import { 
-  Headset, MessageCircle, Send, Users, ExternalLink, X, 
-  Sparkles, TrendingUp, Award, Eye, EyeOff, Wallet,
-  Loader
+  MessageCircle, Send, Users, ExternalLink, X, 
+  Sparkles, TrendingUp, Award, Eye, EyeOff,
+  Calendar
 } from 'lucide-react';
 
 interface VipLevel {
@@ -56,55 +57,134 @@ const LoadingOverlay = ({ message = "Processing..." }: { message?: string }) => 
   </div>
 );
 
-// Minimized Balance Card with Eye Toggle - Matching deposit button color (#E3F2FD)
-const MinimizedBalanceCard = ({ 
+// Enhanced Balance Card with Telebirr-style design and wave patterns
+const EnhancedBalanceCard = ({ 
   balance, 
-  withdrawableBalance 
+  withdrawableBalance,
+  dailyIncome,
+  timeUntilNextTransfer
 }: { 
   balance: number; 
   withdrawableBalance: number;
+  dailyIncome?: number;
+  timeUntilNextTransfer?: string;
 }) => {
   const [showBalance, setShowBalance] = useState(true);
+  const [showWithdrawable, setShowWithdrawable] = useState(true);
+  const [showDailyIncome, setShowDailyIncome] = useState(true);
 
-  const formatBalance = (value: number) => {
-    if (showBalance) {
+  const formatBalance = (value: number, show: boolean) => {
+    if (show) {
       return value.toLocaleString() + ' ETB';
     }
     return '**** ETB';
   };
 
   return (
-    <div className="rounded-2xl p-4 shadow-lg" style={{ backgroundColor: '#E3F2FD' }}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-blue-600" />
-          <span className="text-blue-700 text-sm font-medium">My Wallet</span>
-        </div>
-        <button
-          onClick={() => setShowBalance(!showBalance)}
-          className="p-2 hover:bg-blue-200 rounded-lg transition-colors"
-        >
-          {showBalance ? (
-            <EyeOff className="w-4 h-4 text-blue-600" />
-          ) : (
-            <Eye className="w-4 h-4 text-blue-600" />
-          )}
-        </button>
-      </div>
+    <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
+      {/* Filled wave patterns like Profile page */}
+      <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 300" preserveAspectRatio="none">
+        <path d="M0,120 C100,170 200,70 300,120 C350,145 400,120 400,120 L400,300 L0,300 Z" fill="white" />
+        <path d="M0,160 C80,210 180,110 280,170 C340,200 400,160 400,160 L400,300 L0,300 Z" fill="white" opacity="0.5" />
+      </svg>
       
-      <div className="space-y-2">
-        <div>
-          <p className="text-xs text-blue-600/70">Main Balance</p>
-          <p className="text-xl font-bold text-blue-800">{formatBalance(balance)}</p>
+      {/* Decorative circles */}
+      <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-10 left-0 w-28 h-28 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+      <div className="relative z-10 p-5">
+        {/* Header with larger wallet image */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+              <img src={walletImage} alt="Wallet" className="w-8 h-8 object-contain" />
+            </div>
+            <span className="text-white font-medium text-lg">My Wallet</span>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-blue-600/70">Withdrawable</p>
-          <p className="text-lg font-semibold text-green-600">{formatBalance(withdrawableBalance)}</p>
+
+        {/* Main Balance - centered with eye toggle inside */}
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-sm text-white/80">Main Balance (ETB)</span>
+            <button onClick={() => setShowBalance(!showBalance)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+              {showBalance ? <Eye className="w-4 h-4 text-white" /> : <EyeOff className="w-4 h-4 text-white" />}
+            </button>
+          </div>
+          <p className="text-4xl font-bold text-white tracking-wider">
+            {showBalance ? balance.toLocaleString() : '****'}
+            <span className="text-base font-normal text-white/70 ml-2">ETB</span>
+          </p>
         </div>
+
+        {/* Withdrawable Balance - designed like main balance (no background rectangle) */}
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <span className="text-sm text-white/80">Withdrawable Balance</span>
+            <button onClick={() => setShowWithdrawable(!showWithdrawable)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+              {showWithdrawable ? <Eye className="w-3.5 h-3.5 text-white" /> : <EyeOff className="w-3.5 h-3.5 text-white" />}
+            </button>
+          </div>
+          <p className="text-2xl font-bold text-white">
+            {showWithdrawable ? withdrawableBalance.toLocaleString() : '****'}
+            <span className="text-sm font-normal text-white/60 ml-1">ETB</span>
+          </p>
+        </div>
+
+        {/* Today's Income - simple text line */}
+        {dailyIncome !== undefined && dailyIncome > 0 && (
+          <div className="text-center pt-3 border-t border-white/20">
+            <div className="flex items-center justify-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-white/80" />
+              <span className="text-sm text-white/80">Today's Income:</span>
+              <span className="text-sm font-bold text-yellow-300">
+                {showDailyIncome ? dailyIncome.toLocaleString() : '****'} ETB
+              </span>
+              <button onClick={() => setShowDailyIncome(!showDailyIncome)} className="p-0.5 hover:bg-white/10 rounded">
+                {showDailyIncome ? <Eye className="w-3 h-3 text-white/80" /> : <EyeOff className="w-3 h-3 text-white/80" />}
+              </button>
+            </div>
+            {timeUntilNextTransfer && (
+              <p className="text-[10px] text-white/60 mt-1">⏳ Next transfer in {timeUntilNextTransfer}</p>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Bottom wave separator */}
+      <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 40" preserveAspectRatio="none" style={{ height: '20px' }}>
+        <path d="M0,20 C360,40 720,0 1080,25 C1260,32 1380,15 1440,20 L1440,40 L0,40 Z" fill="#f9fafb" />
+      </svg>
     </div>
   );
 };
+
+// Enhanced Action Button with border line like Profile page cards - Spinner removed
+const EnhancedActionButton = ({ 
+  image, 
+  label, 
+  onClick,
+  bgColor = 'bg-white',
+  isLoading = false,
+  borderColor = '#B0FC38'
+}: { 
+  image: string; 
+  label: string; 
+  onClick: () => void;
+  bgColor?: string;
+  isLoading?: boolean;
+  borderColor?: string;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={isLoading}
+    className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-white border-2"
+    style={{ borderColor: borderColor }}
+  >
+    <img src={image} alt={label} className="w-10 h-10 object-contain" />
+    <span className="text-sm font-bold text-gray-700">{isLoading ? 'Please wait...' : label}</span>
+  </button>
+);
 
 // Welcome Banner Component (unchanged)
 const WelcomeBanner = () => {
@@ -121,7 +201,7 @@ const WelcomeBanner = () => {
   ];
 
   return (
-    <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-lg">
+    <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-lg">
       {/* Animated background particles */}
       <div className="absolute inset-0 opacity-20">
         {[...Array(20)].map((_, i) => (
@@ -259,7 +339,7 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Headset className="w-6 h-6 text-white" />
+                <img src={customerServiceImage} alt="Customer Service" className="w-8 h-8 object-contain" />
               </div>
               <h2 className="text-xl font-bold text-white">Customer Support</h2>
             </div>
@@ -277,46 +357,46 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
         </div>
 
         {/* Channels List */}
-        <div className="p-6 space-y-4 bg-white">
+        <div className="p-6 space-y-4" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
           {telegramChannels.map((channel, index) => (
             <a
               key={index}
               href={channel.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all transform hover:scale-102 hover:shadow-md border border-blue-100 group"
+              className="flex items-center justify-between p-4 bg-blue-600 rounded-xl hover:bg-blue-700 transition-all transform hover:scale-102 hover:shadow-md border border-blue-400 group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-600 rounded-xl shadow-md">
+                <div className="p-3 bg-white rounded-xl shadow-md">
                   {index === 0 ? (
-                    <Headset className="w-5 h-5 text-white" />
+                    <img src={customerServiceImage} alt="Support" className="w-5 h-5 object-contain" />
                   ) : index === 1 ? (
-                    <Users className="w-5 h-5 text-white" />
+                    <Users className="w-5 h-5 text-blue-600" />
                   ) : (
-                    <MessageCircle className="w-5 h-5 text-white" />
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">{channel.label}</h3>
-                  <p className="text-sm text-blue-600 flex items-center gap-1">
+                  <h3 className="font-semibold text-white">{channel.label}</h3>
+                  <p className="text-sm text-blue-200 flex items-center gap-1">
                     <Send className="w-3 h-3" />
                     {channel.handle}
                   </p>
                 </div>
               </div>
-              <ExternalLink className="w-5 h-5 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ExternalLink className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
             </a>
           ))}
           
           {/* Highlighted Official Support */}
-          <div className="mt-2 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
-            <p className="text-xs text-yellow-700 flex items-center gap-1">
+          <div className="mt-2 p-3 bg-yellow-500 rounded-xl border border-yellow-600">
+            <p className="text-xs text-white flex items-center gap-1">
               <span className="font-medium">✨ Official Support:</span> 
               <a 
                 href="https://t.me/DSWonline_suport" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 underline ml-1"
+                className="text-white underline ml-1"
               >
                 @DSWonline_suport
               </a>
@@ -335,55 +415,30 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
   );
 };
 
-// Custom Action Button Component
-const ActionButton = ({ 
-  image, 
-  label, 
-  onClick,
-  bgColor = 'bg-white',
-  isLoading = false
-}: { 
-  image: string; 
-  label: string; 
-  onClick: () => void;
-  bgColor?: string;
-  isLoading?: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={isLoading}
-    className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-    style={{ backgroundColor: bgColor }}
-  >
-    {isLoading ? (
-      <Loader className="w-6 h-6 text-blue-600 animate-spin" />
-    ) : (
-      <img src={image} alt={label} className="w-10 h-10 object-contain" />
-    )}
-    <span className="text-sm font-medium text-gray-700">{isLoading ? 'Loading...' : label}</span>
-  </button>
-);
-
-// Customer Service Button Component
+// Customer Service Button Component - Only image with small red glow
 const CustomerServiceButton = ({ onClick, isLoading }: { onClick: () => void; isLoading?: boolean }) => (
   <button
     onClick={onClick}
     disabled={isLoading}
-    className="fixed right-4 bottom-20 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+    className="fixed right-4 bottom-20 z-50 flex items-center justify-center p-0 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+    style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}
   >
-    {isLoading ? (
-      <Loader className="w-5 h-5 animate-spin" />
-    ) : (
-      <Headset className="w-5 h-5" />
-    )}
-    <span className="font-medium text-sm">{isLoading ? 'Please wait...' : 'DSW Support'}</span>
-    {!isLoading && (
-      <span className="flex h-3 w-3 relative">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-      </span>
-    )}
+    <div className="relative p-3">
+      <img src={customerServiceImage} alt="Support" className="w-10 h-10 object-contain" />
+      {/* Small red glow animation */}
+      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full animate-ping opacity-75" style={{ backgroundColor: '#ef4444' }}></span>
+      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: '#ef4444', opacity: 0.5 }}></span>
+    </div>
   </button>
+);
+
+// Yellow Moving Card - Now positioned closer to balance card
+const YellowMovingCard = () => (
+  <div className="bg-yellow-400 overflow-hidden py-2.5 px-3 rounded-lg mb-4 shadow-md">
+    <div className="whitespace-nowrap animate-marquee inline-block text-sm font-bold text-yellow-900">
+      🎉 WELCOME TO DSW! EARN DAILY INCOME WITH YOUR VIP MEMBERSHIP! &nbsp;&nbsp;&nbsp; ⭐ ONE APP FOR ALL YOUR NEEDS! &nbsp;&nbsp;&nbsp; 🚀 UPGRADE YOUR VIP LEVEL TODAY! &nbsp;&nbsp;&nbsp; 💰 INVEST SMART, EARN PASSIVE INCOME! &nbsp;&nbsp;&nbsp;
+    </div>
+  </div>
 );
 
 // Add these styles to your global CSS file or create a style tag
@@ -440,6 +495,8 @@ const Dashboard = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [showTelegram, setShowTelegram] = useState(false);
   const [showCustomerService, setShowCustomerService] = useState(false);
+  const [dailyIncome, setDailyIncome] = useState<number>(0);
+  const [timeUntilNextTransfer, setTimeUntilNextTransfer] = useState('');
   
   // Loading states for actions
   const [isDepositLoading, setIsDepositLoading] = useState(false);
@@ -474,6 +531,51 @@ const Dashboard = () => {
       navigate('/login');
     }
   }, [user, loading, navigate]);
+
+  // Fetch daily income
+  const fetchDailyIncome = async () => {
+    if (!user) return;
+
+    try {
+      await supabase.functions.invoke('transfer-income');
+    } catch (e) {
+      console.log('Income transfer check:', e);
+    }
+
+    const { data } = await supabase
+      .from('user_daily_income')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data) {
+      setDailyIncome(data.today_income || 0);
+      
+      // Calculate time until next transfer
+      if (data.last_income_transfer_at) {
+        const now = new Date();
+        const lastTransfer = new Date(data.last_income_transfer_at);
+        const hoursSince = (now.getTime() - lastTransfer.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSince < 24 && data.today_income > 0) {
+          const hoursLeft = 24 - hoursSince;
+          const h = Math.floor(hoursLeft);
+          const m = Math.floor((hoursLeft % 1) * 60);
+          setTimeUntilNextTransfer(`${h}h ${m}m`);
+        } else {
+          setTimeUntilNextTransfer('');
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchDailyIncome();
+    
+    // Refresh daily income every minute
+    const interval = setInterval(fetchDailyIncome, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     const fetchVipLevels = async () => {
@@ -565,6 +667,7 @@ const Dashboard = () => {
       setSuccessMessage('Success');
       setShowSuccess(true);
       await refreshProfile();
+      await fetchDailyIncome(); // Refresh daily income after purchase
     } else {
       setSuccessMessage('Purchase failed. Insufficient balance.');
       setShowSuccess(true);
@@ -653,37 +756,42 @@ const Dashboard = () => {
         {/* Animated Welcome Banner */}
         <WelcomeBanner />
 
-        {/* Minimized Balance Card with Eye Toggle - Matching deposit button color (#E3F2FD) */}
-        <div className="mb-6">
-          <MinimizedBalanceCard 
+        {/* Enhanced Balance Card with Telebirr-style design and larger wallet image */}
+        <div className="mb-3">
+          <EnhancedBalanceCard 
             balance={profile.balance}
             withdrawableBalance={profile.withdrawable_balance}
+            dailyIncome={dailyIncome}
+            timeUntilNextTransfer={timeUntilNextTransfer}
           />
         </div>
 
-        {/* Quick Action Buttons */}
+        {/* Yellow Moving Card - Positioned close to balance card */}
+        <YellowMovingCard />
+
+        {/* Quick Action Buttons with border line like Profile page - Spinners removed */}
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold text-gray-800 mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-3">
-            <ActionButton
+          <div className="flex gap-3">
+            <EnhancedActionButton
               image={depositImage}
               label="Deposit"
               onClick={handleDepositClick}
-              bgColor="#E3F2FD"
+              borderColor="#B0FC38"
               isLoading={isDepositLoading}
             />
-            <ActionButton
+            <EnhancedActionButton
               image={withdrawImage}
               label="Withdraw"
               onClick={handleWithdrawClick}
-              bgColor="#FFF3E0"
+              borderColor="#B0FC38"
               isLoading={isWithdrawLoading}
             />
-            <ActionButton
+            <EnhancedActionButton
               image={giftCodeImage}
               label="Gift Code"
               onClick={handleGiftClick}
-              bgColor="#F3E5F5"
+              borderColor="#B0FC38"
               isLoading={isGiftLoading}
             />
           </div>
@@ -692,7 +800,7 @@ const Dashboard = () => {
         {/* Promotional Video Section */}
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold text-gray-800 mb-3">Watch & Earn</h2>
-          <div className="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-video">
+          <div className="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-video border-2" style={{ borderColor: '#B0FC38' }}>
             <iframe
               src="https://www.youtube.com/embed/UQjQMGTG1Vg?autoplay=1&mute=1&loop=1&playlist=UQjQMGTG1Vg&controls=0&showinfo=0&rel=0&modestbranding=1"
               title="Promotional Video"
@@ -723,14 +831,13 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Recent Commissions Ticker */}
-        <RecentCommissions />
-
-        {/* About Us Section with Video */}
-        <AboutSection />
+        {/* About Us Section with Video - Now with balance card background */}
+        <div className="mb-6 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
+          <AboutSection />
+        </div>
       </div>
 
-      {/* Customer Service Button - Fixed on right side above bottom navigation */}
+      {/* Customer Service Button - Only image with balance card background and small red glow */}
       <CustomerServiceButton 
         onClick={handleCustomerService} 
         isLoading={isCustomerServiceLoading}

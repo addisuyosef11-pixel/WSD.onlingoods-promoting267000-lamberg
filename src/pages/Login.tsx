@@ -1,9 +1,5 @@
 
-
-
-
-
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -47,16 +43,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#B0FC38' }}>
       <div className="relative w-full max-w-md">
         <div className="text-center mb-4">
-          <img 
-            src={dswLogo} 
-            alt="DSW" 
-            className="w-28 h-28 mx-auto mb-2 object-contain rounded-2xl"
-          />
-          <h1 className="font-display text-3xl font-bold text-foreground mb-1">{t('Welcome Back')}</h1>
-          <p className="text-muted-foreground">{t('Sign in to continue earning')}</p>
+          <h1 className="font-display text-3xl font-bold text-gray-900 mb-1">{t('Welcome Back')}</h1>
+          <p className="text-gray-700">{t('Sign in to continue earning')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 bg-card rounded-2xl p-6">
@@ -137,3 +128,6 @@ const Login = () => {
 };
 
 export default Login;
+
+
+

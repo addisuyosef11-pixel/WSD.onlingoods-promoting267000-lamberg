@@ -25,7 +25,6 @@ interface TeamMember {
   has_made_deposit: boolean;
   has_made_first_deposit: boolean;
   bonus_claimed: boolean;
-  bonus_amount: number;
 }
 
 interface ReferralStats {
@@ -41,65 +40,65 @@ const ANNOUNCEMENTS = [
   {
     phone: '+251 91 234 5678',
     amount: 145,
-    color: 'from-purple-600 to-purple-700',
+    color: 'from-green-600 to-green-500',
     icon: '🚀',
-    bgColor: 'bg-purple-500'
+    bgColor: 'bg-green-500'
   },
   {
     phone: '+251 92 345 6789',
     amount: 200,
-    color: 'from-blue-600 to-blue-700',
+    color: 'from-green-600 to-green-400',
     icon: '💎',
-    bgColor: 'bg-blue-500'
+    bgColor: 'bg-green-500'
   },
   {
     phone: '+251 93 456 7890',
     amount: 175,
-    color: 'from-green-600 to-green-700',
+    color: 'from-green-500 to-green-400',
     icon: '🌟',
     bgColor: 'bg-green-500'
   },
   {
     phone: '+251 94 567 8901',
     amount: 300,
-    color: 'from-orange-600 to-orange-700',
+    color: 'from-green-700 to-green-500',
     icon: '🔥',
-    bgColor: 'bg-orange-500'
+    bgColor: 'bg-green-600'
   },
   {
     phone: '+251 95 678 9012',
     amount: 250,
-    color: 'from-pink-600 to-pink-700',
+    color: 'from-green-600 to-green-400',
     icon: '💫',
-    bgColor: 'bg-pink-500'
+    bgColor: 'bg-green-500'
   },
   {
     phone: '+251 96 789 0123',
     amount: 180,
-    color: 'from-indigo-600 to-indigo-700',
+    color: 'from-green-500 to-green-300',
     icon: '⚡',
-    bgColor: 'bg-indigo-500'
+    bgColor: 'bg-green-500'
   },
   {
     phone: '+251 97 890 1234',
     amount: 220,
-    color: 'from-red-600 to-red-700',
+    color: 'from-green-600 to-green-400',
     icon: '🎯',
-    bgColor: 'bg-red-500'
+    bgColor: 'bg-green-500'
   },
   {
     phone: '+251 98 901 2345',
     amount: 280,
-    color: 'from-teal-600 to-teal-700',
+    color: 'from-green-700 to-green-500',
     icon: '🏆',
-    bgColor: 'bg-teal-500'
+    bgColor: 'bg-green-600'
   },
   {
     phone: '+251 99 012 3456',
     amount: 320,
-    color: 'from-amber-600 to-amber-700',
+    color: 'from-green-800 to-green-600',
     icon: '👑',
-    bgColor: 'bg-amber-500'
+    bgColor: 'bg-green-700'
   }
 ];
 
@@ -291,30 +290,27 @@ const Team = () => {
 
     try {
       // Fetch team members (profiles where referred_by = current user's auth id)
-      const { data: members, error: membersError } = await supabase
+      const { data: members, error } = await supabase
         .from('profiles')
         .select('id, name, phone, created_at, current_vip_level, has_made_deposit, has_made_first_deposit')
         .eq('referred_by', user.id)
         .order('created_at', { ascending: false });
 
-      if (membersError) throw membersError;
+      if (error) throw error;
 
       // Fetch referral records to check bonus_paid status
       const { data: referrals, error: refError } = await supabase
         .from('referrals')
-        .select('referred_id, bonus_paid, bonus_amount')
+        .select('referred_id, bonus_paid')
         .eq('referrer_id', profile.id);
 
       if (refError) throw refError;
 
-      // Create maps for quick lookup
-      const bonusMap: Record<string, { paid: boolean; amount: number }> = {};
+      // Create a map of referred_id -> bonus_paid
+      const bonusMap: Record<string, boolean> = {};
       if (referrals) {
         referrals.forEach(r => {
-          bonusMap[r.referred_id] = {
-            paid: r.bonus_paid ?? false,
-            amount: r.bonus_amount || BONUS_AMOUNT
-          };
+          bonusMap[r.referred_id] = r.bonus_paid ?? false;
         });
       }
 
@@ -324,17 +320,12 @@ const Team = () => {
         let pending = 0;
 
         const processed: TeamMember[] = members.map(m => {
-          const bonusInfo = bonusMap[m.id];
-          const bonusClaimed = bonusInfo?.paid || false;
-          const bonusAmount = bonusInfo?.amount || BONUS_AMOUNT;
-          
-          // Check if this member qualifies for bonus (has made first deposit)
-          const qualifies = m.has_made_first_deposit || false;
+          const bonusClaimed = bonusMap[m.id] ?? false;
           
           if (bonusClaimed) {
-            earnings += bonusAmount;
+            earnings += BONUS_AMOUNT;
             qualified++;
-          } else if (qualifies) {
+          } else if (m.has_made_first_deposit) {
             qualified++;
             pending++;
           } else {
@@ -348,9 +339,8 @@ const Team = () => {
             created_at: m.created_at,
             current_vip_level: m.current_vip_level || 0,
             has_made_deposit: m.has_made_deposit || false,
-            has_made_first_deposit: qualifies,
+            has_made_first_deposit: m.has_made_first_deposit || false,
             bonus_claimed: bonusClaimed,
-            bonus_amount: bonusAmount
           };
         });
 
@@ -398,11 +388,10 @@ const Team = () => {
     setClaimingId(memberId);
 
     try {
-      const { data, error } = await supabase
-        .rpc('claim_referral_bonus', {
-          p_referrer_user_id: user.id,
-          p_referred_profile_id: memberId,
-        });
+      const { data, error } = await (supabase.rpc as any)('claim_referral_bonus', {
+        p_referrer_user_id: user.id,
+        p_referred_profile_id: memberId,
+      });
 
       if (error) throw error;
 
@@ -429,8 +418,6 @@ const Team = () => {
   };
 
   const referralCode = (profile as any)?.referral_code || 'LOADING';
-  // Use share page for better previews
-  const shareLink = `${APP_URL}/share?ref=${referralCode}`;
   const referralLink = `${APP_URL}/signup?ref=${referralCode}`;
 
   const fireConfetti = () => {
@@ -470,20 +457,20 @@ const Team = () => {
   };
 
   const shareOnSocial = (platform: string) => {
-    const text = `🚀 Join DSW and earn daily income! Use my referral code ${referralCode} to get 145 ETB bonus instantly after your first deposit! Start earning passive income today! 💰`;
+    const text = `🚀 Join DSW and earn daily income! Use my referral code ${referralCode} to get 145 ETB bonus instantly after your first deposit! Start earning passive income today! 💰\n\n👉 Sign up: ${referralLink}`;
     
     switch(platform) {
       case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}&quote=${encodeURIComponent(text)}`, '_blank');
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent(text)}`, '_blank');
         break;
       case 'telegram':
-        window.open(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`, '_blank');
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`, '_blank');
         break;
       case 'instagram':
         copyEnhancedMessage();
         break;
       case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + shareLink)}`, '_blank');
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + referralLink)}`, '_blank');
         break;
       default:
         copyReferralLink();
@@ -610,7 +597,7 @@ const Team = () => {
               <p className="text-xs text-gray-500 mb-1">Referral link:</p>
               <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 flex items-center justify-between">
                 <code className="text-xs text-gray-700 truncate max-w-[180px]">
-                  {shareLink}
+                  {referralLink}
                 </code>
                 <Button
                   onClick={copyReferralLink}
@@ -688,7 +675,7 @@ const Team = () => {
 
             {showQR && (
               <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 flex flex-col items-center">
-                <QRCode value={shareLink} size={160} />
+                <QRCode value={referralLink} size={160} />
                 <p className="text-xs text-gray-500 mt-2">Scan to share referral link</p>
               </div>
             )}
@@ -791,12 +778,12 @@ const Team = () => {
                     <div className="flex flex-wrap gap-2 mb-2">
                       {member.has_made_first_deposit && !member.bonus_claimed && (
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                          Ready to claim {member.bonus_amount} ETB
+                          Ready to claim 145 ETB
                         </span>
                       )}
                       {member.bonus_claimed && (
                         <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">
-                          +{member.bonus_amount} ETB Earned
+                          +145 ETB Earned
                         </span>
                       )}
                       {!member.has_made_first_deposit && !member.bonus_claimed && (
@@ -824,7 +811,7 @@ const Team = () => {
                       {claimingId === member.id ? (
                         <Spinner size="sm" />
                       ) : (
-                        `Claim ${member.bonus_amount} ETB Bonus`
+                        `Claim 145 ETB Bonus`
                       )}
                     </Button>
                   </div>
