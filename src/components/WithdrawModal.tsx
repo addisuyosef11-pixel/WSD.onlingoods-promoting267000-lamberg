@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowDownToLine, Banknote, Lock } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowDownToLine, Banknote, Lock, User, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { SuccessModal } from '@/components/SuccessModal';
@@ -24,33 +23,68 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 }) => {
   const { user, refreshProfile } = useAuth();
   const [amount, setAmount] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
   const [withdrawalPassword, setWithdrawalPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Pre-fill from saved bank account
+  useEffect(() => {
+    if (!user || !isOpen) return;
+    const fetchBankAccount = async () => {
+      const { data } = await supabase
+        .from('bank_accounts')
+        .select('account_number, account_holder_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) {
+        setAccountNumber(data.account_number);
+        setAccountHolderName(data.account_holder_name);
+      }
+    };
+    fetchBankAccount();
+  }, [user, isOpen]);
+
   const handleSubmit = async () => {
     if (!user) return;
 
     const withdrawAmount = parseFloat(amount);
-    
+
     if (!withdrawAmount || withdrawAmount <= 0) {
-      toast.error('Please enter a valid amount');
+      setSuccessMessage('Please enter a valid amount');
+      setShowSuccess(true);
       return;
     }
 
     if (withdrawAmount > withdrawableBalance) {
-      toast.error('Insufficient withdrawable balance');
+      setSuccessMessage('Insufficient withdrawable balance');
+      setShowSuccess(true);
       return;
     }
 
     if (withdrawAmount < 157) {
-      toast.error('Minimum withdrawal is 157 ETB');
+      setSuccessMessage('Minimum withdrawal is 157 ETB');
+      setShowSuccess(true);
+      return;
+    }
+
+    if (!accountNumber.trim()) {
+      setSuccessMessage('Please enter your account number');
+      setShowSuccess(true);
+      return;
+    }
+
+    if (!accountHolderName.trim()) {
+      setSuccessMessage('Please enter the account holder name');
+      setShowSuccess(true);
       return;
     }
 
     if (!withdrawalPassword) {
-      toast.error('Please enter your withdrawal password');
+      setSuccessMessage('Please enter your withdrawal password');
+      setShowSuccess(true);
       return;
     }
 
@@ -64,25 +98,30 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
       .single();
 
     if (!profile?.withdrawal_password) {
-      toast.error('Please set a withdrawal password in your profile settings first');
+      setSuccessMessage('Please set a withdrawal password in your profile settings first');
+      setShowSuccess(true);
       setLoading(false);
       return;
     }
 
     if (profile.withdrawal_password !== withdrawalPassword) {
-      toast.error('Invalid withdrawal password');
+      setSuccessMessage('Invalid withdrawal password');
+      setShowSuccess(true);
       setLoading(false);
       return;
     }
 
-    // Process withdrawal using database function
-    const { data: transactionId, error } = await supabase.rpc('process_withdrawal', {
+    // Process withdrawal with account details
+    const { data: result, error } = await supabase.rpc('process_withdrawal', {
       p_user_id: user.id,
       p_amount: withdrawAmount,
+      p_account_number: accountNumber.trim(),
+      p_account_holder_name: accountHolderName.trim(),
     });
 
-    if (error || !transactionId) {
-      toast.error('Failed to process withdrawal');
+    if (error || !result) {
+      setSuccessMessage('Failed to process withdrawal');
+      setShowSuccess(true);
       setLoading(false);
       return;
     }
@@ -120,6 +159,38 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
             <p className="text-sm text-orange-700">
               ⚠️ Minimum withdraw 157 birr
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Account Holder Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                value={accountHolderName}
+                onChange={(e) => setAccountHolderName(e.target.value)}
+                placeholder="Enter account holder name"
+                className="pl-10 bg-muted border-border"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Account Number
+            </label>
+            <div className="relative">
+              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="Enter account number"
+                className="pl-10 bg-muted border-border"
+              />
+            </div>
           </div>
 
           <div>

@@ -81,11 +81,12 @@ const OrderProductCard: React.FC<{
         disabled={!canClaim}
         className={`w-full mt-3 py-2 font-semibold rounded-lg transition-colors ${
           canClaim 
-            ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-            : 'bg-muted text-muted-foreground cursor-not-allowed'
+            ? 'text-white' 
+            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}
+        style={canClaim ? { background: 'linear-gradient(135deg, #7acc00, #B0FC38)' } : undefined}
       >
-        {isClaimingThis ? t('Claiming...') : canClaim ? t('get') : t('Wait 24h')}
+        {isClaimingThis ? t('Claiming...') : canClaim ? t('get') : '—'}
       </button>
     </div>
   );
@@ -195,28 +196,41 @@ const Orders = () => {
       const now = new Date();
       
       // Check if user has daily income record
-      const { data: existingRecord } = await supabase
+      const { data: existingRecord, error: fetchError } = await supabase
         .from('user_daily_income')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (existingRecord) {
-        // Update existing record
-        await supabase
+        // Update existing record - also reset transfer timer so it doesn't get immediately moved
+        const { error: updateError } = await supabase
           .from('user_daily_income')
           .update({
             today_income: existingRecord.today_income + product.dailyIncome,
+            last_income_transfer_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id);
+        
+        if (updateError) {
+          console.error('Failed to update daily income:', updateError);
+          throw updateError;
+        }
       } else {
         // Create new record
-        await supabase
+        const { error: insertError } = await supabase
           .from('user_daily_income')
           .insert({
             user_id: user.id,
             today_income: product.dailyIncome,
+            last_income_transfer_at: new Date().toISOString(),
           });
+        
+        if (insertError) {
+          console.error('Failed to insert daily income:', insertError);
+          throw insertError;
+        }
       }
 
       // Check if claim record exists for this product
@@ -225,7 +239,7 @@ const Orders = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('transaction_id', product.id)
-        .single();
+        .maybeSingle();
 
       if (existingClaim) {
         // Update existing claim
