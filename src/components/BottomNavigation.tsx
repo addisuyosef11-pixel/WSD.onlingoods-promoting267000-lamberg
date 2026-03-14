@@ -103,15 +103,9 @@ export const BottomNavigation: React.FC = () => {
                 onClick={() => navigate(item.path)}
                 className="relative flex flex-col items-center py-2 sm:py-3 px-1 sm:px-4 rounded-xl transition-all duration-200 hover:bg-white/20 active:bg-white/30 flex-1 max-w-[70px] sm:max-w-none"
               >
-<<<<<<< HEAD
-                {/* Animated green indicator line for active item */}
-                <div className={`
-                  absolute -top-1 left-2 right-2 sm:left-4 sm:right-4 h-1 bg-[#006400] rounded-full
-=======
-                {/* Animated indicator line */}
+                {/* Animated indicator line - using white color for consistency */}
                 <div className={`
                   absolute -top-1 left-2 right-2 sm:left-4 sm:right-4 h-1 bg-white rounded-full
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                   transition-all duration-300 transform
                   ${isActive ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}
                 `} />
@@ -134,17 +128,10 @@ export const BottomNavigation: React.FC = () => {
                     </div>
                   )}
                   
-<<<<<<< HEAD
-                  {/* Small dot indicator for active - now green */}
-                  {isActive && (
-                    <div className="absolute -bottom-2.5 sm:-bottom-3 left-1/2 -translate-x-1/2">
-                      <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#006400] animate-pulse" />
-=======
                   {/* Small dot indicator for active */}
                   {isActive && (
                     <div className="absolute -bottom-2.5 sm:-bottom-3 left-1/2 -translate-x-1/2">
                       <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                     </div>
                   )}
                 </div>
