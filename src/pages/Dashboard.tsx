@@ -3,26 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-<<<<<<< HEAD
-=======
 import { DepositModal } from '@/components/DepositModal';
 import { WithdrawModal } from '@/components/WithdrawModal';
 import { GiftModal } from '@/components/GiftModal';
 import { SuccessModal } from '@/components/SuccessModal';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
 import { TelegramModal } from '@/components/TelegramModal';
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 import { BottomNavigation } from '@/components/BottomNavigation';
 import VipCarousel from '@/components/VipCarousel';
 import AboutSection from '@/components/AboutSection';
 import { Spinner } from '@/components/Spinner';
-<<<<<<< HEAD
-import { SuccessModal } from '@/components/SuccessModal';
-import { GiftModal } from '@/components/GiftModal';
-import { AnnouncementModal } from '@/components/AnnouncementModal';
-import { TelegramModal } from '@/components/TelegramModal';
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
 import dswLogo from '@/assets/dsw-logo.png';
 import withdrawImage from '@/assets/withdraw.png';
@@ -34,11 +24,7 @@ import customerServiceImage from '@/assets/custumer_service.png';
 import { 
   MessageCircle, Send, Users, ExternalLink, X, 
   Sparkles, TrendingUp, Award, Eye, EyeOff,
-<<<<<<< HEAD
-  Calendar, ArrowLeft, CreditCard, History
-=======
   Calendar
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 } from 'lucide-react';
 
 interface VipLevel {
@@ -54,11 +40,7 @@ interface VipLevel {
   purchase_limit?: number;
 }
 
-<<<<<<< HEAD
-// Telegram Channel Data
-=======
 // Telegram Channel Data with updated username
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 const telegramChannels = [
   { label: 'Official Support', url: 'https://t.me/DSWonline_suport', handle: '@DSWonline_suport' },
   { label: 'Public Channel', url: 'https://t.me/etonlinejob1', handle: 'DSW Channel' },
@@ -75,11 +57,7 @@ const LoadingOverlay = ({ message = "Processing..." }: { message?: string }) => 
   </div>
 );
 
-<<<<<<< HEAD
-// Enhanced Balance Card with green theme
-=======
 // Enhanced Balance Card with Telebirr-style design and wave patterns
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 const EnhancedBalanceCard = ({ 
   balance, 
   withdrawableBalance,
@@ -95,19 +73,6 @@ const EnhancedBalanceCard = ({
   const [showWithdrawable, setShowWithdrawable] = useState(true);
   const [showDailyIncome, setShowDailyIncome] = useState(true);
 
-<<<<<<< HEAD
-  return (
-    <div className="relative overflow-hidden rounded-xl shadow-lg" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
-      {/* Decorative circles */}
-      <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-10 left-0 w-28 h-28 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-      <div className="relative z-10 p-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-=======
   const formatBalance = (value: number, show: boolean) => {
     if (show) {
       return value.toLocaleString() + ' ETB';
@@ -132,47 +97,29 @@ const EnhancedBalanceCard = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               <img src={walletImage} alt="Wallet" className="w-8 h-8 object-contain" />
             </div>
             <span className="text-white font-medium text-lg">My Wallet</span>
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Main Balance */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm text-white/80">Main Balance</span>
-=======
         {/* Main Balance - centered with eye toggle inside */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
             <span className="text-sm text-white/80">Main Balance (ETB)</span>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             <button onClick={() => setShowBalance(!showBalance)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
               {showBalance ? <Eye className="w-4 h-4 text-white" /> : <EyeOff className="w-4 h-4 text-white" />}
             </button>
           </div>
-<<<<<<< HEAD
-          <p className="text-3xl font-bold text-white">
-=======
           <p className="text-4xl font-bold text-white tracking-wider">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             {showBalance ? balance.toLocaleString() : '****'}
             <span className="text-base font-normal text-white/70 ml-2">ETB</span>
           </p>
         </div>
 
-<<<<<<< HEAD
-        {/* Withdrawable Balance */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-1">
-=======
         {/* Withdrawable Balance - designed like main balance (no background rectangle) */}
         <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-2 mb-1">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             <span className="text-sm text-white/80">Withdrawable Balance</span>
             <button onClick={() => setShowWithdrawable(!showWithdrawable)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
               {showWithdrawable ? <Eye className="w-3.5 h-3.5 text-white" /> : <EyeOff className="w-3.5 h-3.5 text-white" />}
@@ -184,27 +131,6 @@ const EnhancedBalanceCard = ({
           </p>
         </div>
 
-<<<<<<< HEAD
-        {/* Today's Income */}
-        {dailyIncome !== undefined && dailyIncome > 0 && (
-          <div className="pt-3 border-t border-white/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-white/80" />
-                <span className="text-sm text-white/80">Today's Income:</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white">
-                  {showDailyIncome ? dailyIncome.toLocaleString() : '****'} ETB
-                </span>
-                <button onClick={() => setShowDailyIncome(!showDailyIncome)} className="p-0.5 hover:bg-white/10 rounded">
-                  {showDailyIncome ? <Eye className="w-3 h-3 text-white/80" /> : <EyeOff className="w-3 h-3 text-white/80" />}
-                </button>
-              </div>
-            </div>
-            {timeUntilNextTransfer && (
-              <p className="text-xs text-white/60 mt-1">⏳ Next transfer in {timeUntilNextTransfer}</p>
-=======
         {/* Today's Income - simple text line */}
         {dailyIncome !== undefined && dailyIncome > 0 && (
           <div className="text-center pt-3 border-t border-white/20">
@@ -220,31 +146,19 @@ const EnhancedBalanceCard = ({
             </div>
             {timeUntilNextTransfer && (
               <p className="text-[10px] text-white/60 mt-1">⏳ Next transfer in {timeUntilNextTransfer}</p>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             )}
           </div>
         )}
       </div>
-<<<<<<< HEAD
-=======
 
       {/* Bottom wave separator */}
       <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 40" preserveAspectRatio="none" style={{ height: '20px' }}>
         <path d="M0,20 C360,40 720,0 1080,25 C1260,32 1380,15 1440,20 L1440,40 L0,40 Z" fill="#f9fafb" />
       </svg>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     </div>
   );
 };
 
-<<<<<<< HEAD
-// Action Button with green theme
-const ActionButton = ({ 
-  image, 
-  label, 
-  onClick,
-  isLoading = false
-=======
 // Enhanced Action Button with border line like Profile page cards - Spinner removed
 const EnhancedActionButton = ({ 
   image, 
@@ -253,33 +167,17 @@ const EnhancedActionButton = ({
   bgColor = 'bg-white',
   isLoading = false,
   borderColor = '#B0FC38'
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 }: { 
   image: string; 
   label: string; 
   onClick: () => void;
-<<<<<<< HEAD
-  isLoading?: boolean;
-=======
   bgColor?: string;
   isLoading?: boolean;
   borderColor?: string;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 }) => (
   <button
     onClick={onClick}
     disabled={isLoading}
-<<<<<<< HEAD
-    className="flex-1 flex flex-col items-center gap-2 py-4 px-2 rounded-xl bg-white border-2 border-[#e2e8e2] hover:border-[#7acc00] transition-all disabled:opacity-50 shadow-sm"
-  >
-    <img src={image} alt={label} className="w-10 h-10 object-contain" />
-    <span className="text-sm font-medium text-[#2d3a2d]">{isLoading ? 'Please wait...' : label}</span>
-  </button>
-);
-
-// Welcome Banner Component
-const WelcomeBanner = () => {
-=======
     className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-white border-2"
     style={{ borderColor: borderColor }}
   >
@@ -291,35 +189,12 @@ const WelcomeBanner = () => {
 // Welcome Banner Component (unchanged)
 const WelcomeBanner = () => {
   // Array of messages to scroll
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   const messages = [
     "🚀 Welcome to Digital Smart Work!",
     "💰 Increase Your Salary Through Smart Investments",
     "🏆 Invest in Gold, AirPods & Crypto Products",
     "💎 Start Earning Passive Income Today",
     "📈 Your Financial Freedom Starts Here",
-<<<<<<< HEAD
-  ];
-
-  return (
-    <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-[#7acc00] to-[#B0FC38] shadow-lg">
-      <div className="relative flex items-center p-3">
-        <div className="flex-shrink-0">
-          <img src={addsImage} alt="DSW Promo" className="w-14 h-14 object-contain" />
-        </div>
-        <div className="flex-1 ml-3 overflow-hidden">
-          <div className="overflow-hidden">
-            <div className="flex animate-marquee whitespace-nowrap">
-              {messages.map((msg, index) => (
-                <div key={index} className="flex items-center mx-4 text-white">
-                  <span className="text-sm font-medium">{msg}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-=======
     "✨ Join Thousands of Successful Investors",
     "🎯 Turn Your Savings into Wealth",
     "⭐ VIP Members Earn Up to 300% Returns"
@@ -430,32 +305,18 @@ const WelcomeBanner = () => {
           animation: float-slow 8s ease-in-out infinite;
         }
       `}</style>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     </div>
   );
 };
 
-<<<<<<< HEAD
-// Customer Service Modal
-const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-=======
 // Customer Service Modal Component
 const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { t } = useLanguage();
   
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-<<<<<<< HEAD
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Green Header */}
-        <div className="relative p-6" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-lg">
-=======
       <div className="relative w-full max-w-md bg-gradient-to-b from-blue-600 to-blue-800 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header with wave pattern */}
         <div className="relative p-6 border-b border-white/20">
@@ -478,22 +339,10 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <img src={customerServiceImage} alt="Customer Service" className="w-8 h-8 object-contain" />
               </div>
               <h2 className="text-xl font-bold text-white">Customer Support</h2>
             </div>
-<<<<<<< HEAD
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
-          <p className="mt-3 text-white/80 text-sm">Connect with us on Telegram for instant support</p>
-        </div>
-
-        {/* Channels List */}
-        <div className="p-6 space-y-3">
-=======
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
@@ -509,35 +358,12 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
         {/* Channels List */}
         <div className="p-6 space-y-4" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
           {telegramChannels.map((channel, index) => (
             <a
               key={index}
               href={channel.url}
               target="_blank"
               rel="noopener noreferrer"
-<<<<<<< HEAD
-              className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-xl hover:bg-[#f1f5f1] transition-all border border-[#e2e8e2] group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg border border-[#e2e8e2]">
-                  {index === 0 ? (
-                    <MessageCircle className="w-5 h-5 text-[#7acc00]" />
-                  ) : index === 1 ? (
-                    <Users className="w-5 h-5 text-[#7acc00]" />
-                  ) : (
-                    <Send className="w-5 h-5 text-[#7acc00]" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#2d3a2d]">{channel.label}</h3>
-                  <p className="text-sm text-[#6b7b6b]">{channel.handle}</p>
-                </div>
-              </div>
-              <ExternalLink className="w-5 h-5 text-[#7acc00] opacity-0 group-hover:opacity-100 transition-opacity" />
-            </a>
-          ))}
-=======
               className="flex items-center justify-between p-4 bg-blue-600 rounded-xl hover:bg-blue-700 transition-all transform hover:scale-102 hover:shadow-md border border-blue-400 group"
             >
               <div className="flex items-center gap-3">
@@ -583,38 +409,17 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <p className="text-white/80 text-xs">
             Our support team is available 24/7 to assist you
           </p>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         </div>
       </div>
     </div>
   );
 };
 
-<<<<<<< HEAD
-// Customer Service Button
-=======
 // Customer Service Button Component - Only image with small red glow
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 const CustomerServiceButton = ({ onClick, isLoading }: { onClick: () => void; isLoading?: boolean }) => (
   <button
     onClick={onClick}
     disabled={isLoading}
-<<<<<<< HEAD
-    className="fixed right-4 bottom-20 z-50 p-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50"
-    style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}
-  >
-    <img src={customerServiceImage} alt="Support" className="w-8 h-8 object-contain" />
-    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
-    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
-  </button>
-);
-
-// Yellow Moving Card
-const YellowMovingCard = () => (
-  <div className="bg-[#FFD700] overflow-hidden py-2.5 px-3 rounded-lg mb-4 shadow-md">
-    <div className="whitespace-nowrap animate-marquee inline-block text-sm font-bold text-[#856404]">
-      🎉 WELCOME TO DSW! EARN DAILY INCOME WITH YOUR VIP MEMBERSHIP! &nbsp;&nbsp;&nbsp; ⭐ UPGRADE YOUR VIP LEVEL TODAY! &nbsp;&nbsp;&nbsp;
-=======
     className="fixed right-4 bottom-20 z-50 flex items-center justify-center p-0 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
     style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}
   >
@@ -632,13 +437,10 @@ const YellowMovingCard = () => (
   <div className="bg-yellow-400 overflow-hidden py-2.5 px-3 rounded-lg mb-4 shadow-md">
     <div className="whitespace-nowrap animate-marquee inline-block text-sm font-bold text-yellow-900">
       🎉 WELCOME TO DSW! EARN DAILY INCOME WITH YOUR VIP MEMBERSHIP! &nbsp;&nbsp;&nbsp; ⭐ ONE APP FOR ALL YOUR NEEDS! &nbsp;&nbsp;&nbsp; 🚀 UPGRADE YOUR VIP LEVEL TODAY! &nbsp;&nbsp;&nbsp; 💰 INVEST SMART, EARN PASSIVE INCOME! &nbsp;&nbsp;&nbsp;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     </div>
   </div>
 );
 
-<<<<<<< HEAD
-=======
 // Add these styles to your global CSS file or create a style tag
 const waveAnimations = `
 @keyframes wave-slow {
@@ -678,18 +480,14 @@ const waveAnimations = `
 }
 `;
 
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 const Dashboard = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
-<<<<<<< HEAD
-=======
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   const [showGift, setShowGift] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -700,19 +498,13 @@ const Dashboard = () => {
   const [dailyIncome, setDailyIncome] = useState<number>(0);
   const [timeUntilNextTransfer, setTimeUntilNextTransfer] = useState('');
   
-<<<<<<< HEAD
-  // Loading states
-=======
   // Loading states for actions
   const [isDepositLoading, setIsDepositLoading] = useState(false);
   const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   const [isGiftLoading, setIsGiftLoading] = useState(false);
   const [isInvestLoading, setIsInvestLoading] = useState(false);
   const [isCustomerServiceLoading, setIsCustomerServiceLoading] = useState(false);
   const [investLevelId, setInvestLevelId] = useState<number | null>(null);
-<<<<<<< HEAD
-=======
   
   // Add animation styles
   useEffect(() => {
@@ -723,17 +515,13 @@ const Dashboard = () => {
       document.head.removeChild(style);
     };
   }, []);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
   // Show announcement on login
   useEffect(() => {
     const fromLogin = location.state?.fromLogin;
     if (fromLogin && !loading && user) {
       setShowAnnouncement(true);
-<<<<<<< HEAD
-=======
       // Clear the state to prevent showing again on refresh
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       window.history.replaceState({}, document.title);
     }
   }, [location.state, loading, user]);
@@ -763,10 +551,7 @@ const Dashboard = () => {
     if (data) {
       setDailyIncome(data.today_income || 0);
       
-<<<<<<< HEAD
-=======
       // Calculate time until next transfer
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       if (data.last_income_transfer_at) {
         const now = new Date();
         const lastTransfer = new Date(data.last_income_transfer_at);
@@ -786,11 +571,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDailyIncome();
-<<<<<<< HEAD
-=======
     
     // Refresh daily income every minute
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     const interval = setInterval(fetchDailyIncome, 60000);
     return () => clearInterval(interval);
   }, [user]);
@@ -810,8 +592,6 @@ const Dashboard = () => {
     fetchVipLevels();
   }, []);
 
-<<<<<<< HEAD
-=======
   useEffect(() => {
     const checkCompletedVipLevels = async () => {
       if (!user) return;
@@ -846,15 +626,11 @@ const Dashboard = () => {
     checkCompletedVipLevels();
   }, [user, profile?.current_vip_level]);
 
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   const handleInvest = async (levelId: number) => {
     setInvestLevelId(levelId);
     setIsInvestLoading(true);
     
-<<<<<<< HEAD
-=======
     // 1 second delay
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const level = vipLevels.find(l => l.id === levelId);
@@ -867,10 +643,7 @@ const Dashboard = () => {
     if (profile.balance < level.price) {
       setSuccessMessage('Insufficient balance');
       setShowSuccess(true);
-<<<<<<< HEAD
-=======
       setShowDeposit(true);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       setIsInvestLoading(false);
       setInvestLevelId(null);
       return;
@@ -891,17 +664,10 @@ const Dashboard = () => {
     }
 
     if (data) {
-<<<<<<< HEAD
-      setSuccessMessage('Purchase successful!');
-      setShowSuccess(true);
-      await refreshProfile();
-      await fetchDailyIncome();
-=======
       setSuccessMessage('Success');
       setShowSuccess(true);
       await refreshProfile();
       await fetchDailyIncome(); // Refresh daily income after purchase
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     } else {
       setSuccessMessage('Purchase failed. Insufficient balance.');
       setShowSuccess(true);
@@ -911,10 +677,6 @@ const Dashboard = () => {
     setInvestLevelId(null);
   };
 
-<<<<<<< HEAD
-  const handleGiftClick = async () => {
-    setIsGiftLoading(true);
-=======
   const handleDepositClick = async () => {
     setIsDepositLoading(true);
     // 1 second delay
@@ -934,7 +696,6 @@ const Dashboard = () => {
   const handleGiftClick = async () => {
     setIsGiftLoading(true);
     // 1 second delay
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     await new Promise(resolve => setTimeout(resolve, 1000));
     setShowGift(true);
     setIsGiftLoading(false);
@@ -942,21 +703,12 @@ const Dashboard = () => {
 
   const handleCustomerService = async () => {
     setIsCustomerServiceLoading(true);
-<<<<<<< HEAD
-=======
     // 1 second delay
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     await new Promise(resolve => setTimeout(resolve, 1000));
     setShowCustomerService(true);
     setIsCustomerServiceLoading(false);
   };
 
-<<<<<<< HEAD
-  // Filter VIP levels
-  const pSeriesLevels = vipLevels.filter(level => level.series === 'P' || !level.series);
-  
-  // Carousel items
-=======
   const handleDepositSubmitted = () => {
     // Success is already shown by DepositModal
   };
@@ -966,15 +718,11 @@ const Dashboard = () => {
   const bSeriesLevels = vipLevels.filter(level => level.series === 'B');
 
   // Generate carousel items from P-Series VIP levels (first 3 for carousel)
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   const carouselItems = pSeriesLevels.slice(0, 3).map((level) => {
     const dailyIncome = level.daily_income || Math.round(level.price * 0.09);
     const validityDays = level.cycle_days || 60;
     const totalIncome = level.total_income || dailyIncome * validityDays;
-<<<<<<< HEAD
-=======
     const discountPercent = 50 + level.id * 5;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     
     const soldOutTime = new Date();
     soldOutTime.setHours(soldOutTime.getHours() + level.id * 8);
@@ -987,11 +735,7 @@ const Dashboard = () => {
       validityDays,
       totalIncome,
       purchaseLimit: level.purchase_limit || 2,
-<<<<<<< HEAD
-      discountPercent: 50,
-=======
       discountPercent,
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       image: dswLogo,
       imageUrl: level.image_url,
       soldOutTime,
@@ -1000,30 +744,13 @@ const Dashboard = () => {
 
   if (loading || !profile) {
     return (
-<<<<<<< HEAD
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
-=======
       <div className="min-h-screen flex items-center justify-center bg-background">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] pb-24">
-      {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-[#00c853]/10 to-[#7acc00]/10 rounded-full blur-3xl" />
-      
-      <div className="relative max-w-md mx-auto px-4 py-4">
-        {/* Welcome Banner */}
-        <WelcomeBanner />
-
-        {/* Balance Card */}
-        <div className="mb-4">
-=======
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-24 relative">
       <div className="max-w-md mx-auto">
         {/* Animated Welcome Banner */}
@@ -1031,7 +758,6 @@ const Dashboard = () => {
 
         {/* Enhanced Balance Card with Telebirr-style design and larger wallet image */}
         <div className="mb-3">
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
           <EnhancedBalanceCard 
             balance={profile.balance}
             withdrawableBalance={profile.withdrawable_balance}
@@ -1040,29 +766,6 @@ const Dashboard = () => {
           />
         </div>
 
-<<<<<<< HEAD
-        {/* Yellow Moving Card */}
-        <YellowMovingCard />
-
-        {/* Quick Action Buttons */}
-        <div className="mb-6">
-          <h2 className="font-display text-lg font-bold text-[#2d3a2d] mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-3">
-            <ActionButton
-              image={depositImage}
-              label="Deposit"
-              onClick={() => navigate('/deposit')}
-            />
-            <ActionButton
-              image={withdrawImage}
-              label="Withdraw"
-              onClick={() => navigate('/withdraw')}
-            />
-            <ActionButton
-              image={giftCodeImage}
-              label="Gift Code"
-              onClick={handleGiftClick}
-=======
         {/* Yellow Moving Card - Positioned close to balance card */}
         <YellowMovingCard />
 
@@ -1089,7 +792,6 @@ const Dashboard = () => {
               label="Gift Code"
               onClick={handleGiftClick}
               borderColor="#B0FC38"
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               isLoading={isGiftLoading}
             />
           </div>
@@ -1097,13 +799,8 @@ const Dashboard = () => {
 
         {/* Promotional Video Section */}
         <div className="mb-6">
-<<<<<<< HEAD
-          <h2 className="font-display text-lg font-bold text-[#2d3a2d] mb-3">Watch & Earn</h2>
-          <div className="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-video border-2 border-[#7acc00]">
-=======
           <h2 className="font-display text-lg font-bold text-gray-800 mb-3">Watch & Earn</h2>
           <div className="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-video border-2" style={{ borderColor: '#B0FC38' }}>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             <iframe
               src="https://www.youtube.com/embed/UQjQMGTG1Vg?autoplay=1&mute=1&loop=1&playlist=UQjQMGTG1Vg&controls=0&showinfo=0&rel=0&modestbranding=1"
               title="Promotional Video"
@@ -1112,14 +809,6 @@ const Dashboard = () => {
               className="absolute top-0 left-0 w-full h-full"
               style={{ border: 'none' }}
             />
-<<<<<<< HEAD
-          </div>
-        </div>
-
-        {/* VIP Carousel */}
-        <div className="mb-6">
-          <h2 className="font-display text-lg font-bold text-[#2d3a2d] mb-4">{t('Hot Products')}</h2>
-=======
             
             {/* Optional overlay to prevent accidental navigation */}
             <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
@@ -1134,7 +823,6 @@ const Dashboard = () => {
         {/* Auto-scrolling VIP Carousel */}
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold text-gray-800 mb-4">{t('Hot Products')}</h2>
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
           <VipCarousel 
             items={carouselItems} 
             onInvest={handleInvest}
@@ -1143,24 +831,6 @@ const Dashboard = () => {
           />
         </div>
 
-<<<<<<< HEAD
-        {/* About Section */}
-        <div className="mb-6 rounded-xl overflow-hidden bg-white border border-[#e2e8e2]">
-          <AboutSection />
-        </div>
-
-        {/* Transaction History Link */}
-        <button
-          onClick={() => navigate('/transactions')}
-          className="w-full py-3 flex items-center justify-center gap-2 text-sm text-[#6b7b6b] hover:text-[#2d3a2d] transition-colors"
-        >
-          <History className="w-4 h-4" />
-          View Transaction History
-        </button>
-      </div>
-
-      {/* Customer Service Button */}
-=======
         {/* About Us Section with Video - Now with balance card background */}
         <div className="mb-6 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%)' }}>
           <AboutSection />
@@ -1168,7 +838,6 @@ const Dashboard = () => {
       </div>
 
       {/* Customer Service Button - Only image with balance card background and small red glow */}
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <CustomerServiceButton 
         onClick={handleCustomerService} 
         isLoading={isCustomerServiceLoading}
@@ -1182,9 +851,6 @@ const Dashboard = () => {
 
       <BottomNavigation />
 
-<<<<<<< HEAD
-      {/* Gift Modal */}
-=======
       <DepositModal
         isOpen={showDeposit}
         onClose={() => setShowDeposit(false)}
@@ -1198,26 +864,17 @@ const Dashboard = () => {
         hasCompletedVipLevel={hasCompletedVipLevel}
       />
 
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <GiftModal
         isOpen={showGift}
         onClose={() => setShowGift(false)}
       />
 
-<<<<<<< HEAD
-      {/* Success Modal */}
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
         message={successMessage}
       />
 
-<<<<<<< HEAD
-      {/* Announcement Modal */}
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <AnnouncementModal
         isOpen={showAnnouncement}
         onClose={() => {
@@ -1226,10 +883,6 @@ const Dashboard = () => {
         }}
       />
 
-<<<<<<< HEAD
-      {/* Telegram Modal */}
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <TelegramModal
         isOpen={showTelegram}
         onClose={() => setShowTelegram(false)}
@@ -1238,20 +891,4 @@ const Dashboard = () => {
   );
 };
 
-<<<<<<< HEAD
-// Add marquee animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
-  }
-`;
-document.head.appendChild(style);
-
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 export default Dashboard;
