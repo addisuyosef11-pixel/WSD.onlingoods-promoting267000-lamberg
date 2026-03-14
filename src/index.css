@@ -1,21 +1,12 @@
-<<<<<<< HEAD
 /* ALL @import statements must come FIRST - before any Tailwind directives */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* Then Tailwind directives */
-=======
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< HEAD
 /* DSW Platform - Green Theme */
-=======
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-/* TikTok Shop Platform - Light Theme */
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
 @layer base {
   :root {
@@ -28,29 +19,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-<<<<<<< HEAD
-    /* Green primary colors - Updated to match your theme */
+    /* Green primary colors */
     --primary: 142 70% 45%; /* #7acc00 equivalent */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 142 60% 95%;
     --secondary-foreground: 142 70% 30%;
-=======
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-<<<<<<< HEAD
     --accent: 142 70% 45%;
-=======
-    --accent: 217 91% 60%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -61,7 +40,6 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-<<<<<<< HEAD
     --ring: 142 70% 45%;
 
     --radius: 0.75rem;
@@ -71,36 +49,18 @@
     --warning-orange: 25 95% 55%;
     --dsw-green: 142 70% 45%; /* #7acc00 */
     --dsw-light-green: 142 70% 65%; /* #B0FC38 */
-=======
-    --ring: 217 91% 60%;
-
-    --radius: 0.75rem;
-
-    /* Custom colors */
-    --profit-green: 142 76% 45%;
-    --warning-orange: 25 95% 55%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
     /* Shadows */
     --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.08);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 222 47% 11%;
-<<<<<<< HEAD
     --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 142 60% 95%;
     --sidebar-accent-foreground: 142 70% 30%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 142 70% 45%;
-=======
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 32% 91%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   }
 
   .dark {
@@ -110,7 +70,6 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-<<<<<<< HEAD
     --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 142 60% 95%;
@@ -118,21 +77,11 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     --accent: 142 70% 45%;
-=======
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 217 91% 60%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-<<<<<<< HEAD
     --ring: 142 70% 45%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 222 47% 11%;
@@ -142,17 +91,6 @@
     --sidebar-accent-foreground: 142 70% 30%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 142 70% 45%;
-=======
-    --ring: 217 91% 60%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 32% 91%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   }
 }
 
@@ -172,7 +110,6 @@
 }
 
 @layer utilities {
-<<<<<<< HEAD
   /* Green gradients */
   .primary-gradient {
     background: linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%);
@@ -184,14 +121,6 @@
 
   .primary-text {
     background: linear-gradient(135deg, #7acc00 0%, #B0FC38 100%);
-=======
-  .primary-gradient {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
-  }
-
-  .primary-text {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -250,11 +179,7 @@
   }
 
   .text-profit {
-<<<<<<< HEAD
     color: #7acc00;
-=======
-    color: hsl(142 76% 45%);
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   }
 
   /* Hide scrollbar for carousel */
@@ -267,7 +192,6 @@
     display: none;
   }
 
-<<<<<<< HEAD
   /* Marquee animation for announcements */
   @keyframes marquee {
     0% { transform: translateX(0); }
@@ -328,14 +252,3 @@
     border-color: #7acc00;
   }
 }
-=======
-  @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-
-  .animate-marquee {
-    animation: marquee 15s linear infinite;
-  }
-}
->>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
