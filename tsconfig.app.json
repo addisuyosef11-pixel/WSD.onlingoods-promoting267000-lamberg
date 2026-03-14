@@ -27,5 +27,9 @@
       "@/*": ["./src/*"]
     }
   },
+<<<<<<< HEAD
   "include": ["src", "src/pages/.TSX"]
+=======
+  "include": ["src"]
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 }

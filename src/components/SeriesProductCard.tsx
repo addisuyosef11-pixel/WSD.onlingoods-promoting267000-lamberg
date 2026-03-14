@@ -1,15 +1,26 @@
 import React from 'react';
 import dswLogo from '@/assets/dsw-logo.png';
+<<<<<<< HEAD
 import { ShoppingCart } from 'lucide-react';
 
 interface SeriesProductCardProps {
   id: number;
+=======
+import { ArrowRight } from 'lucide-react';
+
+interface SeriesProductCardProps {
+  id: number;i
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   name: string;
   price: number;
   dailyIncome: number;
   cycleDays: number;
   imageUrl?: string | null;
+<<<<<<< HEAD
   onAddToCart: () => void; // This will function exactly like the buy button
+=======
+  onBuy: () => void;
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 }
 
 const SeriesProductCard: React.FC<SeriesProductCardProps> = ({
@@ -18,6 +29,7 @@ const SeriesProductCard: React.FC<SeriesProductCardProps> = ({
   dailyIncome,
   cycleDays,
   imageUrl,
+<<<<<<< HEAD
   onAddToCart,
 }) => {
   // Calculate total return for the cycle
@@ -70,8 +82,61 @@ const SeriesProductCard: React.FC<SeriesProductCardProps> = ({
         <ShoppingCart className="w-5 h-5 text-white" />
         <span className="text-white font-bold text-sm">Add to Cart</span>
       </button>
+=======
+  onBuy,
+}) => {
+  return (
+    <div className="bg-card rounded-lg border border-border overflow-hidden mb-4">
+      {/* Title */}
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="font-bold text-foreground text-lg">{name}</h3>
+      </div>
+
+      {/* Content row with image and info */}
+      <div className="flex items-start p-4 gap-4">
+        {/* Product Image */}
+        <div className="w-28 h-24 flex-shrink-0 border border-border rounded-lg overflow-hidden bg-muted">
+          <img 
+            src={imageUrl || dswLogo} 
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Info Grid */}
+        <div className="flex-1 space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground text-sm">Price :</span>
+            <span className="text-primary font-bold">ETB{price.toLocaleString()}.00</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground text-sm">Cycle :</span>
+            <span className="text-primary font-bold">{cycleDays} Day</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground text-sm">Daily :</span>
+            <span className="text-primary font-bold">ETB{dailyIncome.toLocaleString()}.00</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Buy button only - no progress bar */}
+      <div className="px-4 pb-4">
+        <button
+          onClick={onBuy}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          <span>Buy</span>
+          <ArrowRight className="w-5 h-5" />
+        </button>
+      </div>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default SeriesProductCard;
+=======
+export default SeriesProductCard;
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3

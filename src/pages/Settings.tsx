@@ -15,19 +15,27 @@ import {
   Globe,
   CreditCard,
   CheckCircle,
+<<<<<<< HEAD
   AlertCircle,
   X,
   User,
   Building,
   Clock
+=======
+  AlertCircle
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+<<<<<<< HEAD
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+=======
+import { SuccessModal } from '@/components/SuccessModal';
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
 interface BankAccount {
   id: string;
@@ -50,8 +58,11 @@ const Settings = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [showAllAccounts, setShowAllAccounts] = useState(false);
+<<<<<<< HEAD
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null);
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   
   // Bind account states
   const [bankName, setBankName] = useState('');
@@ -161,6 +172,10 @@ const Settings = () => {
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // Validate account number (basic validation)
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     if (accountNumber.length < 8) {
       showSuccessMessage('Please enter a valid account number');
       return;
@@ -169,6 +184,10 @@ const Settings = () => {
     setLoading(true);
     
     try {
+<<<<<<< HEAD
+=======
+      // Check if this account number already exists for the user
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       const { data: existingAccount, error: checkError } = await supabase
         .from('bank_accounts')
         .select('*')
@@ -184,7 +203,12 @@ const Settings = () => {
         return;
       }
 
+<<<<<<< HEAD
       const { error } = await supabase
+=======
+      // Insert new bank account
+      const { data, error } = await supabase
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         .from('bank_accounts')
         .insert([
           {
@@ -194,6 +218,7 @@ const Settings = () => {
             account_holder_name: accountHolderName,
             is_verified: false
           }
+<<<<<<< HEAD
         ]);
 
       if (error) throw error;
@@ -201,6 +226,20 @@ const Settings = () => {
       await fetchBankAccounts();
       showSuccessMessage('Account bound successfully! Please wait for verification.');
       
+=======
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Refresh bank accounts list
+      await fetchBankAccounts();
+
+      showSuccessMessage('Account bound successfully! Please wait for verification.');
+      
+      // Clear form
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       setBankName('');
       setAccountNumber('');
       setAccountHolderName('');
@@ -213,13 +252,21 @@ const Settings = () => {
     }
   };
 
+<<<<<<< HEAD
   const handleDeleteAccount = async () => {
     if (!user || !selectedAccount) return;
+=======
+  const handleDeleteAccount = async (accountId: string) => {
+    if (!confirm('Are you sure you want to delete this bank account?')) {
+      return;
+    }
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
     try {
       const { error } = await supabase
         .from('bank_accounts')
         .delete()
+<<<<<<< HEAD
         .eq('id', selectedAccount.id)
         .eq('user_id', user.id);
 
@@ -229,6 +276,16 @@ const Settings = () => {
       showSuccessMessage('Bank account deleted successfully');
       setShowDeleteDialog(false);
       setSelectedAccount(null);
+=======
+        .eq('id', accountId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      // Refresh bank accounts list
+      await fetchBankAccounts();
+      showSuccessMessage('Bank account deleted successfully');
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     } catch (error: any) {
       console.error('Error deleting account:', error);
       showSuccessMessage(error.message || 'Failed to delete account');
@@ -238,7 +295,10 @@ const Settings = () => {
   const settingsItems = [
     {
       icon: <CreditCard className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-blue-400 to-blue-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Bind Account Number'),
       description: t('Link your bank account for withdrawals'),
       onClick: () => setActiveSection('bind'),
@@ -246,49 +306,70 @@ const Settings = () => {
     },
     {
       icon: <Lock className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-purple-400 to-purple-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Change Login Password'),
       description: t('Update your account password'),
       onClick: () => setActiveSection('password'),
     },
     {
       icon: <Shield className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-green-400 to-green-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Withdrawal Password'),
       description: t('Set a 6-digit PIN for withdrawals'),
       onClick: () => setActiveSection('withdrawal'),
     },
     {
       icon: <Bell className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-orange-400 to-orange-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Notifications'),
       description: t('Managed by admin'),
       onClick: () => setActiveSection('notifications'),
     },
     {
       icon: <Globe className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-cyan-400 to-cyan-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Language'),
       description: 'አማርኛ',
       onClick: () => setActiveSection('language'),
     },
     {
       icon: <FileText className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-indigo-400 to-indigo-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Privacy Policy'),
       description: t('Read our privacy policy'),
       onClick: () => setActiveSection('privacy'),
     },
     {
       icon: <HelpCircle className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-pink-400 to-pink-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('Help & Support'),
       description: t('Get help from our support team'),
       onClick: () => navigate('/service'),
     },
     {
       icon: <Info className="w-5 h-5" />,
+<<<<<<< HEAD
       iconBg: 'bg-gradient-to-br from-gray-400 to-gray-500',
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       label: t('About DSW'),
       description: t('Version 1.0.0'),
       onClick: () => setActiveSection('about'),
@@ -301,11 +382,19 @@ const Settings = () => {
         return (
           <div className="space-y-4 p-4">
             <div className="flex items-center justify-between">
+<<<<<<< HEAD
               <h3 className="font-display font-bold text-foreground text-lg">{t('Bind Account Number')}</h3>
               {bankAccounts.length > 0 && (
                 <button
                   onClick={() => setShowAllAccounts(!showAllAccounts)}
                   className="text-sm text-[#7acc00] hover:underline"
+=======
+              <h3 className="font-semibold text-foreground text-lg">{t('Bind Account Number')}</h3>
+              {bankAccounts.length > 0 && (
+                <button
+                  onClick={() => setShowAllAccounts(!showAllAccounts)}
+                  className="text-sm text-primary hover:underline"
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 >
                   {showAllAccounts ? 'Hide' : 'View All'} ({bankAccounts.length})
                 </button>
@@ -320,6 +409,7 @@ const Settings = () => {
                 {bankAccounts.map((account) => (
                   <div
                     key={account.id}
+<<<<<<< HEAD
                     className="p-4 rounded-xl border border-border bg-white shadow-sm"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -365,6 +455,37 @@ const Settings = () => {
                     >
                       Delete Account
                     </button>
+=======
+                    className="p-3 rounded-lg border border-border bg-muted/30 relative"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">{account.bank_name}</span>
+                        {account.is_verified ? (
+                          <span className="flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                            <CheckCircle className="w-3 h-3" />
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
+                            <AlertCircle className="w-3 h-3" />
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAccount(account.id)}
+                        className="text-xs text-red-600 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <p className="text-sm text-foreground">****{account.account_number.slice(-4)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{account.account_holder_name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Added: {new Date(account.created_at).toLocaleDateString()}
+                    </p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                   </div>
                 ))}
               </div>
@@ -373,6 +494,7 @@ const Settings = () => {
             {/* Add new account form */}
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
+<<<<<<< HEAD
                 <Label className="text-foreground">{t('Bank Name')}</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -424,16 +546,61 @@ const Settings = () => {
                 {loading ? <Spinner size="sm" /> : t('Bind Account')}
               </Button>
             </div>
+=======
+                <Label>{t('Bank Name')}</Label>
+                <Input 
+                  placeholder={t('Enter bank name')} 
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Account Number')}</Label>
+                <Input 
+                  placeholder={t('Enter account number')}
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Account Holder Name')}</Label>
+                <Input 
+                  placeholder={t('Enter account holder name')}
+                  value={accountHolderName}
+                  onChange={(e) => setAccountHolderName(e.target.value)}
+                />
+              </div>
+              <Button 
+                className="w-full primary-gradient text-primary-foreground" 
+                onClick={handleBindAccount}
+                disabled={loading}
+              >
+                {loading ? t('Binding...') : t('Bind Account')}
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-4">
+              * Your account will be verified by admin within 24 hours. You'll receive a notification once verified.
+            </p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
           </div>
         );
       case 'password':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('Change Login Password')}</h3>
             <p className="text-sm text-muted-foreground">{t('Update your account password')}</p>
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label className="text-foreground">{t('Current Password')}</Label>
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('Change Login Password')}</h3>
+            <p className="text-sm text-muted-foreground">{t('Update your account password')}</p>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>{t('Current Password')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Enter current password')}
@@ -442,7 +609,11 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-2">
+<<<<<<< HEAD
                 <Label className="text-foreground">{t('New Password')}</Label>
+=======
+                <Label>{t('New Password')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Enter new password')}
@@ -451,7 +622,11 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-2">
+<<<<<<< HEAD
                 <Label className="text-foreground">{t('Confirm New Password')}</Label>
+=======
+                <Label>{t('Confirm New Password')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Confirm New Password')}
@@ -460,11 +635,19 @@ const Settings = () => {
                 />
               </div>
               <Button 
+<<<<<<< HEAD
                 className="w-full bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-white font-semibold hover:shadow-lg" 
                 onClick={handleChangePassword}
                 disabled={loading}
               >
                 {loading ? <Spinner size="sm" /> : t('Change Password')}
+=======
+                className="w-full primary-gradient text-primary-foreground" 
+                onClick={handleChangePassword}
+                disabled={loading}
+              >
+                {loading ? t('Changing...') : t('Change Password')}
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               </Button>
             </div>
           </div>
@@ -472,11 +655,19 @@ const Settings = () => {
       case 'withdrawal':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('Withdrawal Password')}</h3>
             <p className="text-sm text-muted-foreground">{t('Set a 6-digit PIN for withdrawals')}</p>
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label className="text-foreground">{t('Login Password (for verification)')}</Label>
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('Withdrawal Password')}</h3>
+            <p className="text-sm text-muted-foreground">{t('Set a 6-digit PIN for withdrawals')}</p>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>{t('Login Password (for verification)')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Enter login password')}
@@ -485,7 +676,11 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-2">
+<<<<<<< HEAD
                 <Label className="text-foreground">{t('Withdrawal Password (6 digits)')}</Label>
+=======
+                <Label>{t('Withdrawal Password (6 digits)')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Enter 6-digit PIN')} 
@@ -498,7 +693,11 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-2">
+<<<<<<< HEAD
                 <Label className="text-foreground">{t('Confirm Withdrawal Password')}</Label>
+=======
+                <Label>{t('Confirm Withdrawal Password')}</Label>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 <Input 
                   type="password" 
                   placeholder={t('Confirm 6-digit PIN')} 
@@ -511,11 +710,19 @@ const Settings = () => {
                 />
               </div>
               <Button 
+<<<<<<< HEAD
                 className="w-full bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-white font-semibold hover:shadow-lg" 
                 onClick={handleSetWithdrawalPassword}
                 disabled={loading}
               >
                 {loading ? <Spinner size="sm" /> : t('Set Password')}
+=======
+                className="w-full primary-gradient text-primary-foreground" 
+                onClick={handleSetWithdrawalPassword}
+                disabled={loading}
+              >
+                {loading ? t('Setting...') : t('Set Password')}
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               </Button>
             </div>
           </div>
@@ -523,17 +730,26 @@ const Settings = () => {
       case 'notifications':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('Notifications')}</h3>
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 text-center border border-orange-200">
               <Bell className="w-12 h-12 text-orange-500 mx-auto mb-3" />
               <p className="text-orange-700 font-medium">{t('Notifications are managed by admin')}</p>
               <p className="text-sm text-orange-600 mt-2">{t('You will receive important updates automatically')}</p>
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('Notifications')}</h3>
+            <div className="bg-muted/50 rounded-xl p-6 text-center">
+              <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">{t('Notifications are managed by admin')}</p>
+              <p className="text-sm text-muted-foreground mt-2">{t('You will receive important updates automatically')}</p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             </div>
           </div>
         );
       case 'language':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('Language')}</h3>
             <div className="space-y-2">
               <button 
@@ -541,6 +757,15 @@ const Settings = () => {
               >
                 <span className="text-foreground font-medium">አማርኛ (Amharic)</span>
                 <div className="w-5 h-5 rounded-full bg-[#7acc00] flex items-center justify-center">
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('Language')}</h3>
+            <div className="space-y-2">
+              <button 
+                className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-primary bg-primary/5"
+              >
+                <span className="text-foreground font-medium">አማርኛ (Amharic)</span>
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                   <div className="w-2 h-2 rounded-full bg-white" />
                 </div>
               </button>
@@ -557,8 +782,13 @@ const Settings = () => {
       case 'privacy':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('Privacy Policy')}</h3>
             <div className="space-y-4 text-sm text-muted-foreground bg-white rounded-xl p-4 border border-border">
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('Privacy Policy')}</h3>
+            <div className="space-y-4 text-sm text-muted-foreground">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               <p><strong className="text-foreground">1. Data Collection</strong></p>
               <p>We collect information you provide directly to us, such as your name, phone number, and transaction history.</p>
               
@@ -579,14 +809,22 @@ const Settings = () => {
       case 'about':
         return (
           <div className="space-y-4 p-4">
+<<<<<<< HEAD
             <h3 className="font-display font-bold text-foreground text-lg">{t('About DSW')}</h3>
             <div className="text-center py-6 bg-white rounded-xl border border-border">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7acc00]/20 to-[#B0FC38]/20 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl font-bold text-[#7acc00]">DSW</span>
+=======
+            <h3 className="font-semibold text-foreground text-lg">{t('About DSW')}</h3>
+            <div className="text-center py-6">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl font-bold text-primary">DSW</span>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               </div>
               <p className="text-lg font-semibold text-foreground">{t('DSW Platform')}</p>
               <p className="text-sm text-muted-foreground mt-1">{t('Version 1.0.0')}</p>
             </div>
+<<<<<<< HEAD
             <div className="space-y-3 text-sm text-muted-foreground bg-white rounded-xl p-4 border border-border">
               <p>DSW is your trusted platform for earning passive income through smart investments.</p>
               <p>Our VIP system offers multiple tiers with guaranteed daily returns, helping thousands of members achieve their financial goals.</p>
@@ -602,6 +840,23 @@ const Settings = () => {
                 <div className="p-3 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-lg text-center">
                   <p className="text-lg font-bold text-[#7acc00]">24/7</p>
                   <p className="text-xs text-muted-foreground">{t('Support')}</p>
+=======
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>DSW is your trusted platform for earning passive income through smart investments.</p>
+              <p>Our VIP system offers multiple tiers with guaranteed daily returns, helping thousands of members achieve their financial goals.</p>
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <p className="text-lg font-bold text-primary">50K+</p>
+                  <p className="text-xs">{t('Users')}</p>
+                </div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <p className="text-lg font-bold text-primary">9%</p>
+                  <p className="text-xs">{t('Daily ROI')}</p>
+                </div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <p className="text-lg font-bold text-primary">24/7</p>
+                  <p className="text-xs">{t('Support')}</p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 </div>
               </div>
             </div>
@@ -610,22 +865,39 @@ const Settings = () => {
       default:
         return (
           <div className="px-4">
+<<<<<<< HEAD
             <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
+=======
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               {settingsItems.map((item, index) => (
                 <button
                   key={index}
                   onClick={item.onClick}
+<<<<<<< HEAD
                   className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-border last:border-b-0"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center text-white shadow-sm`}>
+=======
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                       {item.icon}
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
+<<<<<<< HEAD
                         <span className="text-sm font-medium text-foreground">{item.label}</span>
                         {item.badge && (
                           <span className="text-xs bg-[#7acc00]/10 text-[#7acc00] px-2 py-0.5 rounded-full font-medium">
+=======
+                        <span className="text-sm font-medium text-foreground block">{item.label}</span>
+                        {item.badge && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                             {item.badge}
                           </span>
                         )}
@@ -656,6 +928,7 @@ const Settings = () => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] pb-24">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
@@ -672,10 +945,25 @@ const Settings = () => {
               <ArrowLeft className="w-5 h-5 text-white" />
             </button>
             <h1 className="text-xl font-bold text-white">
+=======
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background border-b border-border">
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => activeSection === 'main' ? navigate(-1) : setActiveSection('main')}
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               {getHeaderTitle()}
             </h1>
           </div>
         </div>
+<<<<<<< HEAD
         {/* Wave SVG */}
         <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 60" preserveAspectRatio="none" style={{ height: '30px' }}>
           <path d="M0,20 C360,60 720,0 1080,40 C1260,55 1380,25 1440,30 L1440,60 L0,60 Z" fill="#f8fafc" />
@@ -683,11 +971,17 @@ const Settings = () => {
       </div>
 
       <div className="relative max-w-md mx-auto py-4">
+=======
+      </div>
+
+      <div className="max-w-md mx-auto py-4">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         {renderContent()}
       </div>
 
       <BottomNavigation />
 
+<<<<<<< HEAD
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md bg-white p-6">
@@ -718,6 +1012,8 @@ const Settings = () => {
         </DialogContent>
       </Dialog>
 
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
@@ -727,4 +1023,8 @@ const Settings = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Settings;
+=======
+export default Settings;
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3

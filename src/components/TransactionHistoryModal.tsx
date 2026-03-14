@@ -3,7 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Spinner } from '@/components/Spinner';
+<<<<<<< HEAD
 import { ArrowDownToLine, ArrowUpFromLine, Crown, History, X } from 'lucide-react';
+=======
+import { ArrowDownToLine, ArrowUpFromLine, Crown, History } from 'lucide-react';
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 import { format } from 'date-fns';
 
 interface Transaction {
@@ -57,6 +61,7 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'withdrawal':
+<<<<<<< HEAD
         return <ArrowDownToLine className="w-5 h-5 text-white" />;
       case 'deposit':
         return <ArrowUpFromLine className="w-5 h-5 text-white" />;
@@ -77,6 +82,15 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
         return 'bg-gradient-to-br from-[#7acc00] to-[#B0FC38]';
       default:
         return 'bg-gradient-to-br from-gray-400 to-gray-500';
+=======
+        return <ArrowDownToLine className="w-5 h-5 text-red-500" />;
+      case 'deposit':
+        return <ArrowUpFromLine className="w-5 h-5 text-green-500" />;
+      case 'vip_purchase':
+        return <Crown className="w-5 h-5 text-primary" />;
+      default:
+        return <History className="w-5 h-5 text-muted-foreground" />;
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
     }
   };
 
@@ -88,7 +102,11 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
       case 'deposit':
       case 'referral_bonus':
       case 'gift':
+<<<<<<< HEAD
         return 'text-[#7acc00]';
+=======
+        return 'text-green-500';
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       default:
         return 'text-foreground';
     }
@@ -96,12 +114,20 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
+<<<<<<< HEAD
       completed: 'bg-green-100 text-green-700 border border-green-200',
       pending: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
       failed: 'bg-red-100 text-red-700 border border-red-200',
       rejected: 'bg-red-100 text-red-700 border border-red-200',
     };
     return styles[status] || 'bg-gray-100 text-gray-700 border border-gray-200';
+=======
+      completed: 'bg-green-100 text-green-700',
+      pending: 'bg-yellow-100 text-yellow-700',
+      failed: 'bg-red-100 text-red-700',
+    };
+    return styles[status] || 'bg-muted text-muted-foreground';
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   };
 
   const formatType = (type: string) => {
@@ -117,6 +143,7 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+<<<<<<< HEAD
       <DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0">
         {/* Green Gradient Header */}
         <div className="relative" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
@@ -203,8 +230,81 @@ export const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = (
               ))
             )}
           </div>
+=======
+      <DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <History className="w-5 h-5 text-primary" />
+            Transaction History
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          {filterButtons.map((btn) => (
+            <button
+              key={btn.value}
+              onClick={() => setFilter(btn.value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                filter === btn.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Transaction List */}
+        <div className="flex-1 overflow-y-auto space-y-3">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No transactions found
+            </div>
+          ) : (
+            transactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+              >
+                <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
+                  {getTransactionIcon(tx.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {formatType(tx.type)}
+                    </p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadge(tx.status)}`}>
+                      {tx.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}
+                  </p>
+                </div>
+                <div className={`text-right ${getAmountColor(tx.type)}`}>
+                  <p className="font-bold">
+                    {tx.type === 'deposit' || tx.type === 'referral_bonus' || tx.type === 'gift' ? '+' : '-'}
+                    {tx.amount.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">ETB</p>
+                </div>
+              </div>
+            ))
+          )}
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         </div>
       </DialogContent>
     </Dialog>
   );
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3

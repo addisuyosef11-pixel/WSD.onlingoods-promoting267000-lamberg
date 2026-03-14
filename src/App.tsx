@@ -21,10 +21,13 @@ import Settings from "./pages/Settings";
 import CustomerService from "./pages/CustomerService";
 import NotFound from "./pages/NotFound";
 import Announcements from "./pages/Announcements";
+<<<<<<< HEAD
 import MicroSavings from './pages/MicroSavings';
 import BankCardPage from './pages/BankCardPage';
 import { Deposit } from './pages/Deposit'; // Add this import
 import { Withdraw } from './pages/Withdraw'; // Add this import
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
 const queryClient = new QueryClient();
 
@@ -62,7 +65,11 @@ const MetaTagsUpdater = () => {
           document.head.appendChild(element);
         }
       };
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       // Update all relevant meta tags
       updateOrCreateMetaTag('name', 'title', title);
       updateOrCreateMetaTag('property', 'og:title', title);
@@ -137,10 +144,13 @@ const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
         <Route path="/service" element={<CustomerService />} />
         <Route path="/vip/:levelId" element={<VipDetail />} />
         <Route path="/announcements" element={<Announcements />} />
+<<<<<<< HEAD
         <Route path="/micro-savings" element={<MicroSavings />} />
         <Route path="/bank-cards" element={<BankCardPage />} />
         <Route path="/deposit" element={<Deposit />} /> {/* Add this route */}
         <Route path="/withdraw" element={<Withdraw />} /> {/* Add this route */}
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

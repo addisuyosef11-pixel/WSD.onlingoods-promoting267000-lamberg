@@ -7,12 +7,19 @@ import { DepositModal } from '@/components/DepositModal';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import SeriesProductCard from '@/components/SeriesProductCard';
 import SeriesTabs from '@/components/SeriesTabs';
+<<<<<<< HEAD
 import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, PiggyBank, Package } from 'lucide-react';
+=======
+import { ArrowLeft, Play, X, Headset } from 'lucide-react';
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
 import customerServiceImg from '@/assets/customer-service.png';
+<<<<<<< HEAD
 import microSavingImg from '@/assets/micro-saving.png';
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
 interface VipLevel {
   id: number;
@@ -33,6 +40,7 @@ const Earn = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
+<<<<<<< HEAD
   const [activeSeries, setActiveSeries] = useState<'P' | 'B' | 'M'>('P');
   const [showDeposit, setShowDeposit] = useState(false);
   const [loadingLevels, setLoadingLevels] = useState(true);
@@ -40,6 +48,12 @@ const Earn = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<VipLevel | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+=======
+  const [activeSeries, setActiveSeries] = useState<'P' | 'B'>('P');
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [loadingLevels, setLoadingLevels] = useState(true);
+  const [showHowToEarn, setShowHowToEarn] = useState(false);
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,6 +61,7 @@ const Earn = () => {
     }
   }, [user, loading, navigate]);
 
+<<<<<<< HEAD
   // Navigate to MicroSavings when M series is selected
   useEffect(() => {
     if (activeSeries === 'M') {
@@ -54,6 +69,8 @@ const Earn = () => {
     }
   }, [activeSeries, navigate]);
 
+=======
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
   useEffect(() => {
     const fetchVipLevels = async () => {
       setLoadingLevels(true);
@@ -76,6 +93,7 @@ const Earn = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+<<<<<<< HEAD
   const openPurchaseModal = (level: VipLevel) => {
     setSelectedLevel(level);
     setShowPurchaseModal(true);
@@ -87,12 +105,19 @@ const Earn = () => {
 
     if (profile.balance < selectedLevel.price) {
       setShowPurchaseModal(false);
+=======
+  const handleBuy = async (level: VipLevel) => {
+    if (!profile || !user) return;
+
+    if (profile.balance < level.price) {
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       setErrorMessage('Insufficient balance. Please deposit first.');
       setShowErrorModal(true);
       setShowDeposit(true);
       return;
     }
 
+<<<<<<< HEAD
     setPurchasing(true);
 
     const { data, error } = await supabase.rpc('process_vip_purchase', {
@@ -105,18 +130,34 @@ const Earn = () => {
 
     if (error) {
       setShowPurchaseModal(false);
+=======
+    const { data, error } = await supabase.rpc('process_vip_purchase', {
+      p_user_id: user.id,
+      p_vip_level: level.id,
+      p_amount: level.price,
+    });
+
+    if (error) {
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       setErrorMessage('Purchase failed. Please try again.');
       setShowErrorModal(true);
       return;
     }
 
     if (data) {
+<<<<<<< HEAD
       setShowPurchaseModal(false);
       setSuccessMessage(`${selectedLevel.name} added to cart and purchased successfully!`);
       setShowSuccessModal(true);
       await refreshProfile();
     } else {
       setShowPurchaseModal(false);
+=======
+      setSuccessMessage(`${level.name} purchased successfully!`);
+      setShowSuccessModal(true);
+      await refreshProfile();
+    } else {
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
       setErrorMessage('Purchase failed. Insufficient balance.');
       setShowErrorModal(true);
     }
@@ -132,13 +173,18 @@ const Earn = () => {
 
   if (loading || !profile) {
     return (
+<<<<<<< HEAD
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
+=======
+      <div className="min-h-screen flex items-center justify-center bg-background">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
         <Spinner size="lg" />
       </div>
     );
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
@@ -234,10 +280,43 @@ const Earn = () => {
         {/* Products Grid */}
         {loadingLevels ? (
           <div className="flex justify-center py-12">
+=======
+    <div className="min-h-screen bg-background p-4 pb-24">
+      <div className="max-w-md mx-auto">
+        <header className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </Button>
+          <h1 className="font-display text-xl font-bold text-foreground">{t('Product')}</h1>
+        </header>
+
+        {/* Customer Service & How to Earn Card */}
+        <div className="bg-card rounded-2xl border border-border p-4 mb-6 flex items-center gap-4">
+          <img src={customerServiceImg} alt="Customer Service" className="w-14 h-14 object-contain flex-shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-bold text-foreground text-sm mb-1">Need Help Earning?</h3>
+            <p className="text-xs text-muted-foreground mb-2">Watch our guide to start earning today</p>
+            <button
+              onClick={() => setShowHowToEarn(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}
+            >
+              <Play className="w-4 h-4" />
+              How to Earn
+            </button>
+          </div>
+        </div>
+
+        <SeriesTabs activeSeries={activeSeries} onSeriesChange={setActiveSeries} />
+
+        {loadingLevels ? (
+          <div className="flex justify-center py-8">
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
             <Spinner size="lg" />
           </div>
         ) : (
           <div className="space-y-4">
+<<<<<<< HEAD
             {filteredLevels.length > 0 ? (
               filteredLevels.map((level) => (
                 <SeriesProductCard
@@ -258,12 +337,28 @@ const Earn = () => {
                 <p className="text-sm text-[#6b7b6b] mt-1">Check back later for new investment opportunities</p>
               </div>
             )}
+=======
+              {filteredLevels.map((level) => (
+              <SeriesProductCard
+                key={level.id}
+                id={level.id}
+                name={level.name}
+                price={level.price}
+                dailyIncome={level.daily_income}
+                cycleDays={level.cycle_days}
+                imageUrl={level.image_url}
+                videoUrl={level.video_url}
+                onBuy={() => handleBuy(level)}
+              />
+            ))}
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
           </div>
         )}
       </div>
 
       <BottomNavigation />
 
+<<<<<<< HEAD
       {/* Purchase Confirmation Modal */}
       {showPurchaseModal && selectedLevel && (
         <div 
@@ -402,14 +497,33 @@ const Earn = () => {
                 className="p-1.5 rounded-lg hover:bg-[#f1f5f1] transition-colors"
               >
                 <X className="w-5 h-5 text-[#6b7b6b]" />
+=======
+      {/* How to Earn Video Modal */}
+      {showHowToEarn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowHowToEarn(false)}>
+          <div className="w-full max-w-md mx-4 bg-card rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Play className="w-5 h-5 text-primary" />
+                <h3 className="font-bold text-foreground">How to Earn</h3>
+              </div>
+              <button onClick={() => setShowHowToEarn(false)} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
               </button>
             </div>
             <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
               {videosFromDb.length > 0 ? (
                 videosFromDb.map((level) => (
+<<<<<<< HEAD
                   <div key={level.id} className="rounded-xl overflow-hidden border border-[#e2e8e2]">
                     <div className="px-3 py-2 bg-gradient-to-r from-[#7acc00]/10 to-[#B0FC38]/10">
                       <p className="text-sm font-semibold text-[#2d3a2d]">{level.name} Tutorial</p>
+=======
+                  <div key={level.id} className="rounded-xl overflow-hidden border border-border">
+                    <div className="px-3 py-2 bg-muted/50">
+                      <p className="text-sm font-semibold text-foreground">{level.name}</p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                     </div>
                     <div className="w-full aspect-video bg-black">
                       <video
@@ -423,12 +537,19 @@ const Earn = () => {
                   </div>
                 ))
               ) : (
+<<<<<<< HEAD
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#7acc00]/20 to-[#B0FC38]/20 flex items-center justify-center">
                     <Headset className="w-8 h-8 text-[#7acc00]" />
                   </div>
                   <p className="text-[#2d3a2d] font-medium">No tutorials available</p>
                   <p className="text-sm text-[#6b7b6b] mt-1">Contact our support team for assistance</p>
+=======
+                <div className="text-center py-8">
+                  <Headset className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">No tutorial videos available yet.</p>
+                  <p className="text-muted-foreground text-xs mt-1">Contact customer service for help.</p>
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
                 </div>
               )}
             </div>
@@ -458,4 +579,8 @@ const Earn = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Earn;
+=======
+export default Earn;
+>>>>>>> 70a5741d742af1eae8cfd0591d074442a0eef3d3
