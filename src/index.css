@@ -1,0 +1,254 @@
+/* ALL @import statements must come FIRST - before any Tailwind directives */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* Then Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DSW Platform - Green Theme */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Green primary colors - Updated to match your theme */
+    --primary: 142 70% 45%; /* #7acc00 equivalent */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 142 60% 95%;
+    --secondary-foreground: 142 70% 30%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 142 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 142 70% 45%;
+
+    --radius: 0.75rem;
+
+    /* Custom colors - Green theme */
+    --profit-green: 142 76% 45%;
+    --warning-orange: 25 95% 55%;
+    --dsw-green: 142 70% 45%; /* #7acc00 */
+    --dsw-light-green: 142 70% 65%; /* #B0FC38 */
+
+    /* Shadows */
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.08);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 142 70% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 60% 95%;
+    --sidebar-accent-foreground: 142 70% 30%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 142 70% 45%;
+  }
+
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 60% 95%;
+    --secondary-foreground: 142 70% 30%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 142 70% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 142 70% 45%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 142 70% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 60% 95%;
+    --sidebar-accent-foreground: 142 70% 30%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 142 70% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Green gradients */
+  .primary-gradient {
+    background: linear-gradient(135deg, #7acc00 0%, #8fd914 35%, #a3e635 60%, #B0FC38 100%);
+  }
+
+  .primary-gradient-simple {
+    background: linear-gradient(135deg, #7acc00, #B0FC38);
+  }
+
+  .primary-text {
+    background: linear-gradient(135deg, #7acc00 0%, #B0FC38 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .card-gradient {
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
+  }
+
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  @keyframes slide-in-right {
+    from { 
+      opacity: 0; 
+      transform: translateX(100%); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  @keyframes slide-out-left {
+    from { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+    to { 
+      opacity: 0; 
+      transform: translateX(-100%); 
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.5s ease-out forwards;
+  }
+
+  .animate-slide-out-left {
+    animation: slide-out-left 0.5s ease-out forwards;
+  }
+
+  .text-profit {
+    color: #7acc00;
+  }
+
+  /* Hide scrollbar for carousel */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Marquee animation for announcements */
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  /* Pulse animation for green elements */
+  @keyframes green-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .animate-green-pulse {
+    animation: green-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Bounce animation for buttons */
+  @keyframes gentle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  .animate-gentle-bounce {
+    animation: gentle-bounce 2s ease-in-out infinite;
+  }
+
+  /* Status badges */
+  .badge-completed {
+    @apply bg-[#7acc00] text-white;
+  }
+
+  .badge-pending {
+    @apply bg-[#FFD700] text-[#856404];
+  }
+
+  .badge-failed {
+    @apply bg-red-500 text-white;
+  }
+
+  /* Custom colors */
+  .bg-dsw-green {
+    background-color: #7acc00;
+  }
+
+  .bg-dsw-light-green {
+    background-color: #B0FC38;
+  }
+
+  .text-dsw-green {
+    color: #7acc00;
+  }
+
+  .border-dsw-green {
+    border-color: #7acc00;
+  }
+}
