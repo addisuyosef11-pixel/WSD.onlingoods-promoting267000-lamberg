@@ -7,48 +7,47 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   useEffect(() => {
-    // Auto-hide splash screen after 2.5 seconds
+    // Auto-hide splash screen after 2 seconds
     const timer = setTimeout(() => {
       onFinish();
-    }, 2500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [onFinish]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
-      {/* Main content - full screen image */}
-      <div className="absolute inset-0 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Background Image - Full screen */}
+      <div className="absolute inset-0">
         <img 
           src={dswLogo} 
           alt="DSW Logo" 
-          className="w-full h-full object-contain p-8"
-          style={{ maxWidth: '100%', maxHeight: '100%' }}
+          className="w-full h-full object-cover"
         />
       </div>
 
-      {/* TESLA Name and Loading dots - centered */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold text-white mb-4 tracking-wider">TESLA</h1>
+      {/* TESLA Name and Loading dots - centered over image */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px]">
+        <h1 className="text-5xl font-bold text-white mb-6 tracking-wider drop-shadow-lg">TESLA</h1>
         
         {/* Loading dots - Binance style */}
-        <div className="flex space-x-3">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-white/60 [animation-delay:-0.3s]"></div>
-          <div className="h-2 w-2 animate-pulse rounded-full bg-white/80 [animation-delay:-0.15s]"></div>
-          <div className="h-2 w-2 animate-pulse rounded-full bg-white"></div>
+        <div className="flex space-x-4">
+          <div className="h-3 w-3 animate-pulse rounded-full bg-white [animation-delay:-0.3s] drop-shadow-lg"></div>
+          <div className="h-3 w-3 animate-pulse rounded-full bg-white [animation-delay:-0.15s] drop-shadow-lg"></div>
+          <div className="h-3 w-3 animate-pulse rounded-full bg-white drop-shadow-lg"></div>
         </div>
       </div>
 
-      {/* Version number */}
-      <p className="absolute bottom-4 text-white/30 text-xs">
+      {/* Version number - subtle overlay */}
+      <p className="absolute bottom-4 text-white/60 text-xs drop-shadow-md">
         Version 1.0.0
       </p>
 
       <style>{`
         @keyframes pulse {
           0%, 100% {
-            opacity: 0.3;
-            transform: scale(0.8);
+            opacity: 0.4;
+            transform: scale(0.9);
           }
           50% {
             opacity: 1;
