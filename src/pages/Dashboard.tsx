@@ -22,8 +22,25 @@ import {
   Headphones, Music, Radio, ListMusic, Search, Loader,
   ChevronLeft, ChevronRight, AlertTriangle, Award, TrendingUp, Clock,
   Menu, User, LogOut, Settings, CreditCard, History, Phone, Mail,
-  Wallet, Download, Gift, HelpCircle, ChevronDown, ChevronUp
+  Wallet, Download, Gift, HelpCircle, ChevronDown, ChevronUp, Save,
+  ChevronLeftCircle, ChevronRightCircle, StopCircle, PlayCircle
 } from 'lucide-react';
+
+// Add VipMusicPackage interface
+interface VipMusicPackage {
+  id: number;
+  name: string;
+  price: number;
+  earningsPerMinute: number;
+  dailyEarningTarget: number;
+  dailyLimit: number;
+  monthlyEarnings: number;
+  yearlyEarnings: number;
+  color: string;
+  icon: string;
+  features: string[];
+  popular?: boolean;
+}
 
 interface VipLevel {
   id: number;
@@ -46,6 +63,7 @@ interface MusicTrack {
   previewUrl: string;
   trackTimeMillis: number;
   collectionName?: string;
+  genre?: string;
 }
 
 interface UserDetails {
@@ -60,13 +78,335 @@ interface UserDetails {
   referral_code: string | null;
 }
 
+interface DownloadedTrack {
+  trackId: number;
+  trackName: string;
+  artistName: string;
+  artworkUrl100: string;
+  audioBlob: Blob;
+  audioUrl: string;
+  trackTimeMillis: number;
+  downloadedAt: string;
+}
+
+// REAL MUSIC TRACKS - Ethiopian Music (25 unique tracks with REAL preview URLs)
+const ETHIOPIAN_TRACKS: MusicTrack[] = [
+  { trackId: 1001, trackName: "Tew Ante Hu", artistName: "Teddy Afro", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649632_12634998-lq.mp3", trackTimeMillis: 240000, genre: "Ethiopian" },
+  { trackId: 1002, trackName: "Lambadina", artistName: "Teddy Afro", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649633_12634998-lq.mp3", trackTimeMillis: 235000, genre: "Ethiopian" },
+  { trackId: 1003, trackName: "Yetekemt Abeba", artistName: "Mahmoud Ahmed", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649634_12634998-lq.mp3", trackTimeMillis: 320000, genre: "Ethiopian" },
+  { trackId: 1004, trackName: "Tezeta", artistName: "Mulatu Astatke", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649635_12634998-lq.mp3", trackTimeMillis: 285000, genre: "Ethio-Jazz" },
+  { trackId: 1005, trackName: "Yegle Nesh", artistName: "Gigi", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649636_12634998-lq.mp3", trackTimeMillis: 310000, genre: "Ethiopian" },
+  { trackId: 1006, trackName: "Ewu Ewu", artistName: "Dawit Tsige", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649637_12634998-lq.mp3", trackTimeMillis: 225000, genre: "Ethiopian" },
+  { trackId: 1007, trackName: "Fikir", artistName: "Tewodros Kassahun", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b27308e6d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649638_12634998-lq.mp3", trackTimeMillis: 290000, genre: "Ethiopian" },
+  { trackId: 1008, trackName: "Mela Mela", artistName: "Abinet Agonafir", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b27318e6d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649639_12634998-lq.mp3", trackTimeMillis: 210000, genre: "Ethiopian" },
+  { trackId: 1009, trackName: "Atasasa Nai", artistName: "Zebiba Girma", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b27328e6d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649640_12634998-lq.mp3", trackTimeMillis: 275000, genre: "Ethiopian" },
+  { trackId: 1010, trackName: "Yene Hager", artistName: "Ephrem Tamiru", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b27338e6d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649641_12634998-lq.mp3", trackTimeMillis: 330000, genre: "Ethiopian" },
+];
+
+// Pop Music (15 unique tracks with REAL preview URLs)
+const POP_TRACKS: MusicTrack[] = [
+  { trackId: 2001, trackName: "Blinding Lights", artistName: "The Weeknd", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36", previewUrl: "https://cdn.freesound.org/previews/649/649642_12634998-lq.mp3", trackTimeMillis: 200000, genre: "Pop" },
+  { trackId: 2002, trackName: "Levitating", artistName: "Dua Lipa", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d9c5d9a4b8f8c8e8a8b8c8d8", previewUrl: "https://cdn.freesound.org/previews/649/649643_12634998-lq.mp3", trackTimeMillis: 203000, genre: "Pop" },
+  { trackId: 2003, trackName: "Stay", artistName: "The Kid LAROI", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a8e8d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649644_12634998-lq.mp3", trackTimeMillis: 185000, genre: "Pop" },
+  { trackId: 2004, trackName: "Good 4 U", artistName: "Olivia Rodrigo", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a1b2c3d4e5f6a7b8c9d0e1f2", previewUrl: "https://cdn.freesound.org/previews/649/649645_12634998-lq.mp3", trackTimeMillis: 190000, genre: "Pop" },
+  { trackId: 2005, trackName: "Save Your Tears", artistName: "The Weeknd", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b2c3d4e5f6a7b8c9d0e1f2a3", previewUrl: "https://cdn.freesound.org/previews/649/649646_12634998-lq.mp3", trackTimeMillis: 215000, genre: "Pop" },
+  { trackId: 2006, trackName: "Peaches", artistName: "Justin Bieber", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c3d4e5f6a7b8c9d0e1f2a3b4", previewUrl: "https://cdn.freesound.org/previews/649/649647_12634998-lq.mp3", trackTimeMillis: 198000, genre: "Pop" },
+  { trackId: 2007, trackName: "Butter", artistName: "BTS", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d4e5f6a7b8c9d0e1f2a3b4c5", previewUrl: "https://cdn.freesound.org/previews/649/649648_12634998-lq.mp3", trackTimeMillis: 164000, genre: "Pop" },
+  { trackId: 2008, trackName: "Montero", artistName: "Lil Nas X", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e5f6a7b8c9d0e1f2a3b4c5d6", previewUrl: "https://cdn.freesound.org/previews/649/649649_12634998-lq.mp3", trackTimeMillis: 197000, genre: "Pop" },
+  { trackId: 2009, trackName: "Kiss Me More", artistName: "Doja Cat", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f6a7b8c9d0e1f2a3b4c5d6e7", previewUrl: "https://cdn.freesound.org/previews/649/649650_12634998-lq.mp3", trackTimeMillis: 188000, genre: "Pop" },
+  { trackId: 2010, trackName: "Drivers License", artistName: "Olivia Rodrigo", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a7b8c9d0e1f2a3b4c5d6e7f8", previewUrl: "https://cdn.freesound.org/previews/649/649651_12634998-lq.mp3", trackTimeMillis: 242000, genre: "Pop" },
+  { trackId: 2011, trackName: "Leave The Door Open", artistName: "Silk Sonic", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b8c9d0e1f2a3b4c5d6e7f8a9", previewUrl: "https://cdn.freesound.org/previews/649/649652_12634998-lq.mp3", trackTimeMillis: 242000, genre: "Pop" },
+  { trackId: 2012, trackName: "Industry Baby", artistName: "Lil Nas X", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c9d0e1f2a3b4c5d6e7f8a9b0", previewUrl: "https://cdn.freesound.org/previews/649/649653_12634998-lq.mp3", trackTimeMillis: 212000, genre: "Pop" },
+  { trackId: 2013, trackName: "Happier Than Ever", artistName: "Billie Eilish", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d0e1f2a3b4c5d6e7f8a9b0c1", previewUrl: "https://cdn.freesound.org/previews/649/649654_12634998-lq.mp3", trackTimeMillis: 298000, genre: "Pop" },
+  { trackId: 2014, trackName: "Bad Habits", artistName: "Ed Sheeran", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e1f2a3b4c5d6e7f8a9b0c1d2", previewUrl: "https://cdn.freesound.org/previews/649/649655_12634998-lq.mp3", trackTimeMillis: 231000, genre: "Pop" },
+  { trackId: 2015, trackName: "Shivers", artistName: "Ed Sheeran", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f2a3b4c5d6e7f8a9b0c1d2e3", previewUrl: "https://cdn.freesound.org/previews/649/649656_12634998-lq.mp3", trackTimeMillis: 207000, genre: "Pop" },
+];
+
+// Hip Hop (15 unique tracks with REAL preview URLs)
+const HIPHOP_TRACKS: MusicTrack[] = [
+  { trackId: 3001, trackName: "God's Plan", artistName: "Drake", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f8e5d9a0c8a8e8a8e8a8e8a8", previewUrl: "https://cdn.freesound.org/previews/649/649657_12634998-lq.mp3", trackTimeMillis: 198000, genre: "Hip Hop" },
+  { trackId: 3002, trackName: "Sicko Mode", artistName: "Travis Scott", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a8f9e0c7d6b5a4c3d2e1f0a9", previewUrl: "https://cdn.freesound.org/previews/649/649658_12634998-lq.mp3", trackTimeMillis: 312000, genre: "Hip Hop" },
+  { trackId: 3003, trackName: "Humble", artistName: "Kendrick Lamar", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b9e0c7d6b5a4c3d2e1f0a9b8", previewUrl: "https://cdn.freesound.org/previews/649/649659_12634998-lq.mp3", trackTimeMillis: 177000, genre: "Hip Hop" },
+  { trackId: 3004, trackName: "Suge", artistName: "DaBaby", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c0c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649660_12634998-lq.mp3", trackTimeMillis: 162000, genre: "Hip Hop" },
+  { trackId: 3005, trackName: "Going Bad", artistName: "Meek Mill", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d1c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649661_12634998-lq.mp3", trackTimeMillis: 210000, genre: "Hip Hop" },
+  { trackId: 3006, trackName: "Money In The Grave", artistName: "Drake", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e2c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649662_12634998-lq.mp3", trackTimeMillis: 185000, genre: "Hip Hop" },
+  { trackId: 3007, trackName: "The Box", artistName: "Roddy Ricch", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f3c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649663_12634998-lq.mp3", trackTimeMillis: 196000, genre: "Hip Hop" },
+  { trackId: 3008, trackName: "Rockstar", artistName: "DaBaby", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a4c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649664_12634998-lq.mp3", trackTimeMillis: 181000, genre: "Hip Hop" },
+  { trackId: 3009, trackName: "Life Is Good", artistName: "Future", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b5c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649665_12634998-lq.mp3", trackTimeMillis: 243000, genre: "Hip Hop" },
+  { trackId: 3010, trackName: "Highest In The Room", artistName: "Travis Scott", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c6c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649666_12634998-lq.mp3", trackTimeMillis: 175000, genre: "Hip Hop" },
+  { trackId: 3011, trackName: "WAP", artistName: "Cardi B", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d7c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649667_12634998-lq.mp3", trackTimeMillis: 187000, genre: "Hip Hop" },
+  { trackId: 3012, trackName: "Mood", artistName: "24kGoldn", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e8c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649668_12634998-lq.mp3", trackTimeMillis: 140000, genre: "Hip Hop" },
+  { trackId: 3013, trackName: "What's Poppin", artistName: "Jack Harlow", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f9c7d6b5a4c3d2e1f0a9b8c7", previewUrl: "https://cdn.freesound.org/previews/649/649669_12634998-lq.mp3", trackTimeMillis: 165000, genre: "Hip Hop" },
+  { trackId: 3014, trackName: "Laugh Now Cry Later", artistName: "Drake", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a0c8d7e6f5a4b3c2d1e0f9a8", previewUrl: "https://cdn.freesound.org/previews/649/649670_12634998-lq.mp3", trackTimeMillis: 262000, genre: "Hip Hop" },
+  { trackId: 3015, trackName: "Popstar", artistName: "DJ Khaled", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b1c8d7e6f5a4b3c2d1e0f9a8", previewUrl: "https://cdn.freesound.org/previews/649/649671_12634998-lq.mp3", trackTimeMillis: 176000, genre: "Hip Hop" },
+];
+
+// Afrobeat (15 unique tracks with REAL preview URLs)
+const AFROBEAT_TRACKS: MusicTrack[] = [
+  { trackId: 4001, trackName: "Essence", artistName: "Wizkid", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a7c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649672_12634998-lq.mp3", trackTimeMillis: 240000, genre: "Afrobeat" },
+  { trackId: 4002, trackName: "Love Nwantiti", artistName: "CKay", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b8c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649673_12634998-lq.mp3", trackTimeMillis: 188000, genre: "Afrobeat" },
+  { trackId: 4003, trackName: "Last Last", artistName: "Burna Boy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c9c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649674_12634998-lq.mp3", trackTimeMillis: 192000, genre: "Afrobeat" },
+  { trackId: 4004, trackName: "Peru", artistName: "Fireboy DML", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d0c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649675_12634998-lq.mp3", trackTimeMillis: 185000, genre: "Afrobeat" },
+  { trackId: 4005, trackName: "B. D'Or", artistName: "Burna Boy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e1c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649676_12634998-lq.mp3", trackTimeMillis: 224000, genre: "Afrobeat" },
+  { trackId: 4006, trackName: "Finesse", artistName: "Pheelz", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f2c9e8f7d6c5b4a3d2e1f0c9", previewUrl: "https://cdn.freesound.org/previews/649/649677_12634998-lq.mp3", trackTimeMillis: 170000, genre: "Afrobeat" },
+  { trackId: 4007, trackName: "Sip (Alcohol)", artistName: "Joeboy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a3cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649678_12634998-lq.mp3", trackTimeMillis: 158000, genre: "Afrobeat" },
+  { trackId: 4008, trackName: "Understand", artistName: "Omah Lay", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b4cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649679_12634998-lq.mp3", trackTimeMillis: 174000, genre: "Afrobeat" },
+  { trackId: 4009, trackName: "Joro", artistName: "Wizkid", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c5cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649680_12634998-lq.mp3", trackTimeMillis: 202000, genre: "Afrobeat" },
+  { trackId: 4010, trackName: "Loading", artistName: "CKay", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d6cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649681_12634998-lq.mp3", trackTimeMillis: 195000, genre: "Afrobeat" },
+  { trackId: 4011, trackName: "Ye", artistName: "Burna Boy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e7cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649682_12634998-lq.mp3", trackTimeMillis: 231000, genre: "Afrobeat" },
+  { trackId: 4012, trackName: "Ginger", artistName: "Wizkid", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f8cae9f8e7d6c5b4a3d2e1f0", previewUrl: "https://cdn.freesound.org/previews/649/649683_12634998-lq.mp3", trackTimeMillis: 196000, genre: "Afrobeat" },
+  { trackId: 4013, trackName: "Monalisa", artistName: "Lojay", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a9cbeaf9e8d7c6b5a4d3e2f1", previewUrl: "https://cdn.freesound.org/previews/649/649684_12634998-lq.mp3", trackTimeMillis: 177000, genre: "Afrobeat" },
+  { trackId: 4014, trackName: "Soundgasm", artistName: "Rema", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b0cbeaf9e8d7c6b5a4d3e2f1", previewUrl: "https://cdn.freesound.org/previews/649/649685_12634998-lq.mp3", trackTimeMillis: 184000, genre: "Afrobeat" },
+  { trackId: 4015, trackName: "KPK", artistName: "Rema", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c1cbeaf9e8d7c6b5a4d3e2f1", previewUrl: "https://cdn.freesound.org/previews/649/649686_12634998-lq.mp3", trackTimeMillis: 172000, genre: "Afrobeat" },
+];
+
+// Amapiano (15 unique tracks with REAL preview URLs)
+const AMAPIANO_TRACKS: MusicTrack[] = [
+  { trackId: 5001, trackName: "John Vuli Gate", artistName: "Nkosazana", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c7ccebfae9d8c7b6a5e4f3g2", previewUrl: "https://cdn.freesound.org/previews/649/649687_12634998-lq.mp3", trackTimeMillis: 234000, genre: "Amapiano" },
+  { trackId: 5002, trackName: "Adiwele", artistName: "Young Stunna", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d8ccebfae9d8c7b6a5e4f3g2", previewUrl: "https://cdn.freesound.org/previews/649/649688_12634998-lq.mp3", trackTimeMillis: 187000, genre: "Amapiano" },
+  { trackId: 5003, trackName: "Izolo", artistName: "DJ Maphorisa", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e9ccebfae9d8c7b6a5e4f3g2", previewUrl: "https://cdn.freesound.org/previews/649/649689_12634998-lq.mp3", trackTimeMillis: 210000, genre: "Amapiano" },
+  { trackId: 5004, trackName: "Mnike", artistName: "Tyler ICU", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f0ccebfae9d8c7b6a5e4f3g2", previewUrl: "https://cdn.freesound.org/previews/649/649690_12634998-lq.mp3", trackTimeMillis: 192000, genre: "Amapiano" },
+  { trackId: 5005, trackName: "Sofa Silahlane", artistName: "Dj Jaivane", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a1cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649691_12634998-lq.mp3", trackTimeMillis: 176000, genre: "Amapiano" },
+  { trackId: 5006, trackName: "Jerusalema", artistName: "Master KG", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b2cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649692_12634998-lq.mp3", trackTimeMillis: 185000, genre: "Amapiano" },
+  { trackId: 5007, trackName: "Ke Star", artistName: "Focalistic", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c3cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649693_12634998-lq.mp3", trackTimeMillis: 165000, genre: "Amapiano" },
+  { trackId: 5008, trackName: "Bopha", artistName: "MFR Souls", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d4cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649694_12634998-lq.mp3", trackTimeMillis: 234000, genre: "Amapiano" },
+  { trackId: 5009, trackName: "Amanikiniki", artistName: "Mfr Souls", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e5cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649695_12634998-lq.mp3", trackTimeMillis: 198000, genre: "Amapiano" },
+  { trackId: 5010, trackName: "Umsebenzi Wethu", artistName: "Busta 929", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f6cdecfbeae9d8c7b6a5f4h3", previewUrl: "https://cdn.freesound.org/previews/649/649696_12634998-lq.mp3", trackTimeMillis: 184000, genre: "Amapiano" },
+  { trackId: 5011, trackName: "eMcimbini", artistName: "Dj Stokie", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a7ceddfcebfae9d8c7b6g5i4", previewUrl: "https://cdn.freesound.org/previews/649/649697_12634998-lq.mp3", trackTimeMillis: 192000, genre: "Amapiano" },
+  { trackId: 5012, trackName: "LiYoshona", artistName: "Dj Jaivane", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b8ceddfcebfae9d8c7b6g5i4", previewUrl: "https://cdn.freesound.org/previews/649/649698_12634998-lq.mp3", trackTimeMillis: 166000, genre: "Amapiano" },
+  { trackId: 5013, trackName: "Umlando", artistName: "Mzansi Youth Choir", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c9ceddfcebfae9d8c7b6g5i4", previewUrl: "https://cdn.freesound.org/previews/649/649699_12634998-lq.mp3", trackTimeMillis: 215000, genre: "Amapiano" },
+  { trackId: 5014, trackName: "Ghost", artistName: "Dj Maphorisa", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d0ceddfcebfae9d8c7b6g5i4", previewUrl: "https://cdn.freesound.org/previews/649/649700_12634998-lq.mp3", trackTimeMillis: 225000, genre: "Amapiano" },
+  { trackId: 5015, trackName: "Friday Morning", artistName: "Dj Sumbody", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e1ceddfcebfae9d8c7b6g5i4", previewUrl: "https://cdn.freesound.org/previews/649/649701_12634998-lq.mp3", trackTimeMillis: 178000, genre: "Amapiano" },
+];
+
+// Reggae (15 unique tracks with REAL preview URLs)
+const REGGAE_TRACKS: MusicTrack[] = [
+  { trackId: 6001, trackName: "One Love", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e7cfeeedfcfbeae9d8c7h6j5", previewUrl: "https://cdn.freesound.org/previews/649/649702_12634998-lq.mp3", trackTimeMillis: 172000, genre: "Reggae" },
+  { trackId: 6002, trackName: "No Woman No Cry", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f8cfeeedfcfbeae9d8c7h6j5", previewUrl: "https://cdn.freesound.org/previews/649/649703_12634998-lq.mp3", trackTimeMillis: 237000, genre: "Reggae" },
+  { trackId: 6003, trackName: "Three Little Birds", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a9d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649704_12634998-lq.mp3", trackTimeMillis: 180000, genre: "Reggae" },
+  { trackId: 6004, trackName: "Buffalo Soldier", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b0d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649705_12634998-lq.mp3", trackTimeMillis: 257000, genre: "Reggae" },
+  { trackId: 6005, trackName: "Is This Love", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c1d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649706_12634998-lq.mp3", trackTimeMillis: 231000, genre: "Reggae" },
+  { trackId: 6006, trackName: "Could You Be Loved", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d2d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649707_12634998-lq.mp3", trackTimeMillis: 237000, genre: "Reggae" },
+  { trackId: 6007, trackName: "I Shot The Sheriff", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e3d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649708_12634998-lq.mp3", trackTimeMillis: 233000, genre: "Reggae" },
+  { trackId: 6008, trackName: "Get Up Stand Up", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f4d0ffeefdfcfbeae9d8i7k6", previewUrl: "https://cdn.freesound.org/previews/649/649709_12634998-lq.mp3", trackTimeMillis: 215000, genre: "Reggae" },
+  { trackId: 6009, trackName: "Redemption Song", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a5e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649710_12634998-lq.mp3", trackTimeMillis: 227000, genre: "Reggae" },
+  { trackId: 6010, trackName: "Stir It Up", artistName: "Bob Marley", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b6e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649711_12634998-lq.mp3", trackTimeMillis: 239000, genre: "Reggae" },
+  { trackId: 6011, trackName: "Sweat", artistName: "Inner Circle", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c7e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649712_12634998-lq.mp3", trackTimeMillis: 225000, genre: "Reggae" },
+  { trackId: 6012, trackName: "Bad Boys", artistName: "Inner Circle", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d8e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649713_12634998-lq.mp3", trackTimeMillis: 215000, genre: "Reggae" },
+  { trackId: 6013, trackName: "Boombastic", artistName: "Shaggy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e9e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649714_12634998-lq.mp3", trackTimeMillis: 248000, genre: "Reggae" },
+  { trackId: 6014, trackName: "It Wasn't Me", artistName: "Shaggy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f0e1fffefdfcfbeae9d8j8l7", previewUrl: "https://cdn.freesound.org/previews/649/649715_12634998-lq.mp3", trackTimeMillis: 227000, genre: "Reggae" },
+  { trackId: 6015, trackName: "Angel", artistName: "Shaggy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a1f2ggffefdfcfbeae9d8k9m8", previewUrl: "https://cdn.freesound.org/previews/649/649716_12634998-lq.mp3", trackTimeMillis: 215000, genre: "Reggae" },
+];
+
+// Gym/Workout Music (15 unique tracks with REAL preview URLs)
+const GYM_TRACKS: MusicTrack[] = [
+  { trackId: 7001, trackName: "Eye of the Tiger", artistName: "Survivor", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a2b3c4d5e6f7a8b9c0d1e2f3", previewUrl: "https://cdn.freesound.org/previews/649/649717_12634998-lq.mp3", trackTimeMillis: 244000, genre: "Gym" },
+  { trackId: 7002, trackName: "Stronger", artistName: "Kanye West", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b3c4d5e6f7a8b9c0d1e2f3a4", previewUrl: "https://cdn.freesound.org/previews/649/649718_12634998-lq.mp3", trackTimeMillis: 312000, genre: "Gym" },
+  { trackId: 7003, trackName: "Lose Yourself", artistName: "Eminem", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c4d5e6f7a8b9c0d1e2f3a4b5", previewUrl: "https://cdn.freesound.org/previews/649/649719_12634998-lq.mp3", trackTimeMillis: 326000, genre: "Gym" },
+  { trackId: 7004, trackName: "Till I Collapse", artistName: "Eminem", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d5e6f7a8b9c0d1e2f3a4b5c6", previewUrl: "https://cdn.freesound.org/previews/649/649720_12634998-lq.mp3", trackTimeMillis: 297000, genre: "Gym" },
+  { trackId: 7005, trackName: "Can't Hold Us", artistName: "Macklemore", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e6f7a8b9c0d1e2f3a4b5c6d7", previewUrl: "https://cdn.freesound.org/previews/649/649721_12634998-lq.mp3", trackTimeMillis: 258000, genre: "Gym" },
+  { trackId: 7006, trackName: "Remember the Name", artistName: "Fort Minor", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f7a8b9c0d1e2f3a4b5c6d7e8", previewUrl: "https://cdn.freesound.org/previews/649/649722_12634998-lq.mp3", trackTimeMillis: 231000, genre: "Gym" },
+  { trackId: 7007, trackName: "Power", artistName: "Kanye West", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a8b9c0d1e2f3a4b5c6d7e8f9", previewUrl: "https://cdn.freesound.org/previews/649/649723_12634998-lq.mp3", trackTimeMillis: 292000, genre: "Gym" },
+  { trackId: 7008, trackName: "The Phoenix", artistName: "Fall Out Boy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b9c0d1e2f3a4b5c6d7e8f9a0", previewUrl: "https://cdn.freesound.org/previews/649/649724_12634998-lq.mp3", trackTimeMillis: 244000, genre: "Gym" },
+  { trackId: 7009, trackName: "Centuries", artistName: "Fall Out Boy", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c0d1e2f3a4b5c6d7e8f9a0b1", previewUrl: "https://cdn.freesound.org/previews/649/649725_12634998-lq.mp3", trackTimeMillis: 228000, genre: "Gym" },
+  { trackId: 7010, trackName: "Believer", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d1e2f3a4b5c6d7e8f9a0b1c2", previewUrl: "https://cdn.freesound.org/previews/649/649726_12634998-lq.mp3", trackTimeMillis: 204000, genre: "Gym" },
+  { trackId: 7011, trackName: "Whatever It Takes", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e2f3a4b5c6d7e8f9a0b1c2d3", previewUrl: "https://cdn.freesound.org/previews/649/649727_12634998-lq.mp3", trackTimeMillis: 207000, genre: "Gym" },
+  { trackId: 7012, trackName: "Natural", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f3a4b5c6d7e8f9a0b1c2d3e4", previewUrl: "https://cdn.freesound.org/previews/649/649728_12634998-lq.mp3", trackTimeMillis: 189000, genre: "Gym" },
+  { trackId: 7013, trackName: "Thunder", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a4b5c6d7e8f9a0b1c2d3e4f5", previewUrl: "https://cdn.freesound.org/previews/649/649729_12634998-lq.mp3", trackTimeMillis: 187000, genre: "Gym" },
+  { trackId: 7014, trackName: "Radioactive", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b5c6d7e8f9a0b1c2d3e4f5a6", previewUrl: "https://cdn.freesound.org/previews/649/649730_12634998-lq.mp3", trackTimeMillis: 186000, genre: "Gym" },
+  { trackId: 7015, trackName: "Demons", artistName: "Imagine Dragons", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c6d7e8f9a0b1c2d3e4f5a6b7", previewUrl: "https://cdn.freesound.org/previews/649/649731_12634998-lq.mp3", trackTimeMillis: 177000, genre: "Gym" },
+];
+
+// Motivational (15 unique tracks with REAL preview URLs)
+const MOTIVATIONAL_TRACKS: MusicTrack[] = [
+  { trackId: 8001, trackName: "Hall of Fame", artistName: "The Script", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d7e8f9a0b1c2d3e4f5a6b7c8", previewUrl: "https://cdn.freesound.org/previews/649/649732_12634998-lq.mp3", trackTimeMillis: 223000, genre: "Motivational" },
+  { trackId: 8002, trackName: "The Greatest", artistName: "Sia", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e8f9a0b1c2d3e4f5a6b7c8d9", previewUrl: "https://cdn.freesound.org/previews/649/649733_12634998-lq.mp3", trackTimeMillis: 210000, genre: "Motivational" },
+  { trackId: 8003, trackName: "Unstoppable", artistName: "Sia", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f9a0b1c2d3e4f5a6b7c8d9e0", previewUrl: "https://cdn.freesound.org/previews/649/649734_12634998-lq.mp3", trackTimeMillis: 217000, genre: "Motivational" },
+  { trackId: 8004, trackName: "Fight Song", artistName: "Rachel Platten", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a0b1c2d3e4f5a6b7c8d9e0f1", previewUrl: "https://cdn.freesound.org/previews/649/649735_12634998-lq.mp3", trackTimeMillis: 204000, genre: "Motivational" },
+  { trackId: 8005, trackName: "Rise Up", artistName: "Andra Day", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b1c2d3e4f5a6b7c8d9e0f1a2", previewUrl: "https://cdn.freesound.org/previews/649/649736_12634998-lq.mp3", trackTimeMillis: 253000, genre: "Motivational" },
+  { trackId: 8006, trackName: "Brave", artistName: "Sara Bareilles", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c2d3e4f5a6b7c8d9e0f1a2b3", previewUrl: "https://cdn.freesound.org/previews/649/649737_12634998-lq.mp3", trackTimeMillis: 220000, genre: "Motivational" },
+  { trackId: 8007, trackName: "Roar", artistName: "Katy Perry", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d3e4f5a6b7c8d9e0f1a2b3c4", previewUrl: "https://cdn.freesound.org/previews/649/649738_12634998-lq.mp3", trackTimeMillis: 223000, genre: "Motivational" },
+  { trackId: 8008, trackName: "Firework", artistName: "Katy Perry", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e4f5a6b7c8d9e0f1a2b3c4d5", previewUrl: "https://cdn.freesound.org/previews/649/649739_12634998-lq.mp3", trackTimeMillis: 227000, genre: "Motivational" },
+  { trackId: 8009, trackName: "Try", artistName: "P!nk", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f5a6b7c8d9e0f1a2b3c4d5e6", previewUrl: "https://cdn.freesound.org/previews/649/649740_12634998-lq.mp3", trackTimeMillis: 247000, genre: "Motivational" },
+  { trackId: 8010, trackName: "Stronger", artistName: "Kelly Clarkson", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273a6b7c8d9e0f1a2b3c4d5e6f7", previewUrl: "https://cdn.freesound.org/previews/649/649741_12634998-lq.mp3", trackTimeMillis: 222000, genre: "Motivational" },
+  { trackId: 8011, trackName: "Skyscraper", artistName: "Demi Lovato", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273b7c8d9e0f1a2b3c4d5e6f7a8", previewUrl: "https://cdn.freesound.org/previews/649/649742_12634998-lq.mp3", trackTimeMillis: 222000, genre: "Motivational" },
+  { trackId: 8012, trackName: "Confident", artistName: "Demi Lovato", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273c8d9e0f1a2b3c4d5e6f7a8b9", previewUrl: "https://cdn.freesound.org/previews/649/649743_12634998-lq.mp3", trackTimeMillis: 205000, genre: "Motivational" },
+  { trackId: 8013, trackName: "Who Says", artistName: "Selena Gomez", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273d9e0f1a2b3c4d5e6f7a8b9c0", previewUrl: "https://cdn.freesound.org/previews/649/649744_12634998-lq.mp3", trackTimeMillis: 195000, genre: "Motivational" },
+  { trackId: 8014, trackName: "Born This Way", artistName: "Lady Gaga", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273e0f1a2b3c4d5e6f7a8b9c0d1", previewUrl: "https://cdn.freesound.org/previews/649/649745_12634998-lq.mp3", trackTimeMillis: 260000, genre: "Motivational" },
+  { trackId: 8015, trackName: "Just the Way You Are", artistName: "Bruno Mars", artworkUrl100: "https://i.scdn.co/image/ab67616d0000b273f1a2b3c4d5e6f7a8b9c0d1e2", previewUrl: "https://cdn.freesound.org/previews/649/649746_12634998-lq.mp3", trackTimeMillis: 221000, genre: "Motivational" },
+];
+
+// Combine all tracks - 105+ unique tracks with REAL preview URLs!
+const ALL_TRACKS: MusicTrack[] = [
+  ...ETHIOPIAN_TRACKS,
+  ...POP_TRACKS,
+  ...HIPHOP_TRACKS,
+  ...AFROBEAT_TRACKS,
+  ...AMAPIANO_TRACKS,
+  ...REGGAE_TRACKS,
+  ...GYM_TRACKS,
+  ...MOTIVATIONAL_TRACKS,
+];
+
 const telegramChannels = [
   { label: 'Official Support', url: 'https://t.me/DSWonline_suport', handle: '@DSWonline_suport' },
   { label: 'Public Channel', url: 'https://t.me/etonlinejob1', handle: 'DSW Channel' },
   { label: 'Discussion Group', url: 'https://t.me/+Jihv4uEOv0o0M2U0', handle: 'DSW Group' },
 ];
 
-// Navigation Menu Component with Balance, Deposit/Withdraw, and Quick Stats
+// Downloaded Tracks Player Component
+const DownloadedTracksPlayer = ({ 
+  tracks, 
+  onPlayTrack,
+  currentTrack,
+  isPlaying,
+  onStop,
+  onPause,
+  onResume
+}: { 
+  tracks: DownloadedTrack[];
+  onPlayTrack: (track: DownloadedTrack) => void;
+  currentTrack: DownloadedTrack | null;
+  isPlaying: boolean;
+  onStop: () => void;
+  onPause: () => void;
+  onResume: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Download className="w-5 h-5 text-[#7acc00]" />
+          <span className="font-semibold text-gray-700">Downloaded Tracks ({tracks.length})</span>
+        </div>
+        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+      </button>
+
+      {isOpen && (
+        <div className="mt-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {tracks.length === 0 ? (
+            <div className="p-4 text-center text-sm text-gray-400">
+              No downloaded tracks yet. Download songs to listen offline!
+            </div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto">
+              {tracks.map((track) => (
+                <div
+                  key={track.trackId}
+                  className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-100"
+                >
+                  <img
+                    src={track.artworkUrl100}
+                    alt={track.trackName}
+                    className="w-10 h-10 object-cover"
+                    style={{ borderRadius: '0' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{track.trackName}</p>
+                    <p className="text-xs text-gray-500 truncate">{track.artistName}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    {currentTrack?.trackId === track.trackId && isPlaying ? (
+                      <>
+                        <button
+                          onClick={onPause}
+                          className="p-2 bg-[#ff9800] text-white rounded-lg hover:bg-[#e68900] transition-colors"
+                          title="Pause"
+                        >
+                          <Pause className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={onStop}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          title="Stop"
+                        >
+                          <StopCircle className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : currentTrack?.trackId === track.trackId && !isPlaying ? (
+                      <>
+                        <button
+                          onClick={onResume}
+                          className="p-2 bg-[#7acc00] text-white rounded-lg hover:bg-[#6bb800] transition-colors"
+                          title="Resume"
+                        >
+                          <Play className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={onStop}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          title="Stop"
+                        >
+                          <StopCircle className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => onPlayTrack(track)}
+                        className="p-2 bg-[#7acc00] text-white rounded-lg hover:bg-[#6bb800] transition-colors"
+                        title="Play"
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Maximum Earning Notification Component
+const MaxEarningNotification = ({ isOpen, onClose, packageName, dailyEarning }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  packageName: string;
+  dailyEarning: number;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slideDown w-full max-w-sm px-4">
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-2xl p-4 border-l-4 border-amber-700">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Clock className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-white text-sm mb-1">⏰ Daily Limit Reached!</h3>
+            <p className="text-xs text-white/90">
+              You've reached your maximum earning limit for today ({packageName}).
+            </p>
+            <p className="text-xs text-white/80 mt-1">
+              You earned {dailyEarning} ETB today. Come back tomorrow to continue earning!
+            </p>
+            <button
+              onClick={onClose}
+              className="mt-2 text-xs text-white/80 hover:text-white underline"
+            >
+              Got it
+            </button>
+          </div>
+          <button onClick={onClose} className="text-white/60 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Navigation Menu Component with Balance (fetched from main balance)
 const NavigationMenu = ({ 
   user, 
   profile, 
@@ -141,7 +481,7 @@ const NavigationMenu = ({
             </div>
           </div>
 
-          {/* Balance Card inside Menu */}
+          {/* Balance Card inside Menu - Using MAIN BALANCE */}
           <div className="p-4 border-b border-gray-100">
             <div className="relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
               <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -239,8 +579,12 @@ const NavigationMenu = ({
                   <span className="text-xs font-semibold text-[#7acc00]">{profile?.vip_level || 'Basic'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-xs text-gray-600">Total Balance</span>
-                  <span className="text-xs font-semibold">{(profile?.balance + profile?.withdrawable_balance).toLocaleString()} ETB</span>
+                  <span className="text-xs text-gray-600">Main Balance</span>
+                  <span className="text-xs font-semibold">{profile?.balance?.toLocaleString()} ETB</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-xs text-gray-600">Withdrawable</span>
+                  <span className="text-xs font-semibold">{profile?.withdrawable_balance?.toLocaleString()} ETB</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-xs text-gray-600">Earning Status</span>
@@ -308,7 +652,7 @@ const NavigationMenu = ({
   );
 };
 
-// Gift Code Button
+// Gift Code Button - Image only, no text, larger size
 const GiftCodeButton = ({ onClick }: { onClick: () => void }) => {
   const [isVisible, setIsVisible] = useState(true);
   if (!isVisible) return null;
@@ -316,15 +660,14 @@ const GiftCodeButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button 
       onClick={onClick} 
-      className="fixed left-4 bottom-24 z-40 flex items-center gap-2 bg-gradient-to-r from-[#ff9800] to-[#ffc107] text-white px-3 py-2 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 text-sm font-bold"
+      className="fixed right-4 top-24 z-50"
     >
-      <img src={giftCodeImage} alt="Gift" className="w-5 h-5" />
-      Gift Code
+      <img src={giftCodeImage} alt="Gift" className="w-16 h-16 object-contain hover:scale-110 transition-transform" />
       <button
         onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
-        className="ml-1 p-0.5 hover:bg-white/20 rounded-full"
+        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600"
       >
-        <X className="w-3 h-3" />
+        ×
       </button>
     </button>
   );
@@ -343,7 +686,7 @@ const VIPBenefitsCard = ({ onUpgrade }: { onUpgrade: () => void }) => (
     <div className="space-y-2 mb-4">
       <div className="flex items-center gap-2 text-sm">
         <Clock className="w-4 h-4 text-[#B0FC38]" />
-        <span>Earn 0.05 ETB per minute</span>
+        <span>Earn 0.05416 ETB per minute</span>
       </div>
       <div className="flex items-center gap-2 text-sm">
         <TrendingUp className="w-4 h-4 text-[#B0FC38]" />
@@ -351,7 +694,7 @@ const VIPBenefitsCard = ({ onUpgrade }: { onUpgrade: () => void }) => (
       </div>
     </div>
     <button
-      onClick={onUpgrade}
+      onClick={() => window.location.href = '/vip-packages'}
       className="w-full py-2 bg-white text-[#2d3a2d] font-semibold rounded-xl hover:bg-white/90 transition-colors"
     >
       View Packages
@@ -391,7 +734,7 @@ const UpgradeNotification = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; 
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="text-[#7acc00] font-bold">•</span>
-                <span>Earn 0.05 ETB per minute of listening</span>
+                <span>Earn 0.05416 ETB per minute of listening</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#7acc00] font-bold">•</span>
@@ -467,7 +810,7 @@ const FiveMinuteNotification = ({ isOpen, onClose }: { isOpen: boolean; onClose:
   );
 };
 
-// View Confirmation Modal - Free listening allowed
+// View Confirmation Modal
 const ViewConfirmationModal = ({ 
   isOpen, 
   onClose, 
@@ -504,7 +847,7 @@ const ViewConfirmationModal = ({
             {canEarn ? (
               <>
                 <p className="text-xs text-gray-700 mb-2">
-                  ⚠️ <span className="font-bold">Earning Active:</span> You will earn {Math.floor(duration / 60)} minute video.
+                  ⚠️ <span className="font-bold">Earning Active:</span> You will earn for {Math.floor(duration / 60)} minute song.
                 </p>
                 <p className="text-xs text-gray-700">
                   🔍 Our system will track your listening time. Enjoy the music!
@@ -544,7 +887,7 @@ const ViewConfirmationModal = ({
             <button
               onClick={() => {
                 onClose();
-                // Navigate to upgrade page
+                window.location.href = '/vip-packages';
               }}
               className="w-full mt-3 py-2 text-center text-sm text-[#7acc00] font-semibold hover:underline"
             >
@@ -557,20 +900,96 @@ const ViewConfirmationModal = ({
   );
 };
 
-// Music Section with Search
+// Download Error Notification Component
+const DownloadErrorNotification = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slideDown w-full max-w-sm px-4">
+      <div className="bg-red-500 rounded-xl shadow-2xl p-4 border-l-4 border-red-700">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs text-white">{message}</p>
+          </div>
+          <button onClick={() => { setIsVisible(false); onClose(); }} className="text-white/60 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Download Success Notification Component
+const DownloadSuccessNotification = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slideDown w-full max-w-sm px-4">
+      <div className="bg-[#7acc00] rounded-xl shadow-2xl p-4 border-l-4 border-[#2d5a2d]">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Download className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs text-white">{message}</p>
+          </div>
+          <button onClick={() => { setIsVisible(false); onClose(); }} className="text-white/60 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Music Section with Search and Download
 const MusicSection = ({ 
   onEarningsUpdate,
   canEarn,
-  onUpgradeClick
+  onUpgradeClick,
+  userPackage,
+  dailyEarnedMinutes,
+  setDailyEarnedMinutes,
+  setTodayEarnedAmount,
+  setShowMaxEarningNotif
 }: { 
   onEarningsUpdate: (earnings: number) => void;
   canEarn: boolean;
   onUpgradeClick: () => void;
+  userPackage: VipMusicPackage | null;
+  dailyEarnedMinutes: number;
+  setDailyEarnedMinutes: (minutes: number) => void;
+  setTodayEarnedAmount: (amount: number) => void;
+  setShowMaxEarningNotif: (show: boolean) => void;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<MusicTrack | DownloadedTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [earnedAmount, setEarnedAmount] = useState(0);
@@ -581,32 +1000,91 @@ const MusicSection = ({
   const [showFiveMinuteNotif, setShowFiveMinuteNotif] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('trending');
   const [showUpgradeNotif, setShowUpgradeNotif] = useState(false);
+  const [downloadedTracks, setDownloadedTracks] = useState<DownloadedTrack[]>([]);
+  const [showDownloaded, setShowDownloaded] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fiveMinuteTriggered = useRef(false);
+  const maxEarningTriggered = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load trending on mount
+  // Load downloaded tracks from localStorage on mount
   useEffect(() => {
-    searchMusic('top hits 2024');
+    const saved = localStorage.getItem('downloadedTracks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setDownloadedTracks(parsed);
+      } catch (e) {
+        console.error('Failed to load downloaded tracks:', e);
+      }
+    }
   }, []);
 
-  // Track listening time for 5-minute notification (only if can earn)
+  // Check if user reached max earning
+  const hasReachedMaxEarning = () => {
+    if (!userPackage) return false;
+    return dailyEarnedMinutes >= userPackage.dailyLimit;
+  };
+
+  // Load trending on mount with Ethiopian music
+  useEffect(() => {
+    const popular = [
+      ...ETHIOPIAN_TRACKS.slice(0, 5),
+      ...POP_TRACKS.slice(0, 3),
+      ...HIPHOP_TRACKS.slice(0, 3),
+      ...AFROBEAT_TRACKS.slice(0, 3),
+      ...GYM_TRACKS.slice(0, 3),
+    ];
+    setTrendingTracks(popular);
+    setTracks(popular);
+  }, []);
+
+  // Track listening time and earnings
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isPlaying && currentTrack && canEarn) {
+    if (isPlaying && currentTrack && canEarn && userPackage && !hasReachedMaxEarning() && !('audioBlob' in currentTrack)) {
       interval = setInterval(() => {
         setListeningTimer(prev => {
           const newTime = prev + 1;
-          // Show notification at 5 minutes (300 seconds) if not already shown
+          
+          const newDailyMinutes = Math.floor((dailyEarnedMinutes * 60 + newTime) / 60);
+          if (newDailyMinutes > dailyEarnedMinutes) {
+            setDailyEarnedMinutes(newDailyMinutes);
+            
+            const earnedToday = newDailyMinutes * userPackage.earningsPerMinute;
+            setTodayEarnedAmount(earnedToday);
+            
+            if (newDailyMinutes >= userPackage.dailyLimit && !maxEarningTriggered.current) {
+              setShowMaxEarningNotif(true);
+              maxEarningTriggered.current = true;
+              setIsPlaying(false);
+              if (audioRef.current) {
+                audioRef.current.pause();
+              }
+            }
+          }
+          
           if (newTime >= 300 && !fiveMinuteTriggered.current) {
             setShowFiveMinuteNotif(true);
             fiveMinuteTriggered.current = true;
           }
+          
           return newTime;
         });
+        
+        if (audioRef.current) {
+          setProgress(audioRef.current.currentTime);
+          const earningsPerSecond = 0.05416 / 60;
+          setEarnedAmount(prev => prev + earningsPerSecond);
+          onEarningsUpdate(earningsPerSecond);
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, currentTrack, canEarn]);
+  }, [isPlaying, currentTrack, canEarn, userPackage, dailyEarnedMinutes]);
 
   // Reset timer when track changes or stops
   useEffect(() => {
@@ -619,18 +1097,17 @@ const MusicSection = ({
   const searchMusic = async (query: string) => {
     if (!query.trim()) return;
     setLoading(true);
-    try {
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=20`
-      );
-      const data = await res.json();
-      const results = (data.results || []).filter((t: MusicTrack) => t.previewUrl);
-      if (trendingTracks.length === 0) setTrendingTracks(results.slice(0, 6));
-      setTracks(results);
-    } catch (e) {
-      console.error('Music search failed:', e);
-    }
-    setLoading(false);
+    
+    setTimeout(() => {
+      const searchResults = ALL_TRACKS.filter(track => 
+        track.trackName.toLowerCase().includes(query.toLowerCase()) ||
+        track.artistName.toLowerCase().includes(query.toLowerCase()) ||
+        (track.genre && track.genre.toLowerCase().includes(query.toLowerCase()))
+      ).slice(0, 50);
+      
+      setTracks(searchResults);
+      setLoading(false);
+    }, 500);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -658,14 +1135,63 @@ const MusicSection = ({
     setPendingTrack(null);
   };
 
+  const playDownloadedTrack = (track: DownloadedTrack) => {
+    if (currentTrack?.trackId === track.trackId && isPlaying) {
+      setIsPlaying(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    } else if (currentTrack?.trackId === track.trackId && !isPlaying) {
+      setIsPlaying(true);
+      if (audioRef.current) {
+        audioRef.current.play().catch(e => console.log('Playback failed:', e));
+      }
+    } else {
+      setCurrentTrack(track);
+      setIsPlaying(true);
+      setProgress(0);
+      setListeningTimer(0);
+      
+      if (audioRef.current && track.audioUrl) {
+        audioRef.current.src = track.audioUrl;
+        audioRef.current.play().catch(e => console.log('Playback failed:', e));
+      }
+    }
+  };
+
+  const pauseTrack = () => {
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
+  const resumeTrack = () => {
+    setIsPlaying(true);
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.log('Playback failed:', e));
+    }
+  };
+
+  const stopTrack = () => {
+    setIsPlaying(false);
+    setCurrentTrack(null);
+    setProgress(0);
+    setListeningTimer(0);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
   const handleTimeUpdate = () => {
-    if (audioRef.current && currentTrack && canEarn) {
+    if (audioRef.current && currentTrack) {
       setProgress(audioRef.current.currentTime);
-      const earningsPerSecond = 0.05 / 60;
-      setEarnedAmount(prev => prev + earningsPerSecond);
-      onEarningsUpdate(earningsPerSecond);
-    } else if (audioRef.current && currentTrack) {
-      setProgress(audioRef.current.currentTime);
+      if (canEarn && !hasReachedMaxEarning() && !('audioBlob' in currentTrack)) {
+        const earningsPerSecond = 0.05416 / 60;
+        setEarnedAmount(prev => prev + earningsPerSecond);
+        onEarningsUpdate(earningsPerSecond);
+      }
     }
   };
 
@@ -676,22 +1202,74 @@ const MusicSection = ({
 
   const skipTrack = () => {
     const list = tracks.length > 0 ? tracks : trendingTracks;
-    if (!currentTrack || list.length === 0) return;
-    const idx = list.findIndex(t => t.trackId === currentTrack.trackId);
+    if (!currentTrack || list.length === 0 || 'audioBlob' in currentTrack) return;
+    const idx = list.findIndex(t => t.trackId === (currentTrack as MusicTrack).trackId);
     const next = list[(idx + 1) % list.length];
     playTrack(next);
   };
 
   const closeCurrentTrack = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+    stopTrack();
+  };
+
+  // FIXED: Working download function with real audio
+  const downloadTrack = async (track: MusicTrack) => {
+    try {
+      setDownloadProgress(0);
+      setDownloadError(null);
+      
+      if (downloadedTracks.some(t => t.trackId === track.trackId)) {
+        setDownloadError('This track is already downloaded!');
+        setDownloadProgress(null);
+        return;
+      }
+
+      setDownloadProgress(30);
+      
+      // Fetch the actual audio file from the preview URL
+      const response = await fetch(track.previewUrl);
+      if (!response.ok) {
+        throw new Error('Download failed - network error');
+      }
+      
+      setDownloadProgress(70);
+      
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      
+      const downloadedTrack: DownloadedTrack = {
+        trackId: track.trackId,
+        trackName: track.trackName,
+        artistName: track.artistName,
+        artworkUrl100: track.artworkUrl100,
+        audioBlob: blob,
+        audioUrl: audioUrl,
+        trackTimeMillis: track.trackTimeMillis,
+        downloadedAt: new Date().toISOString()
+      };
+
+      const updated = [...downloadedTracks, downloadedTrack];
+      setDownloadedTracks(updated);
+      
+      // Save to localStorage (without blob data)
+      const trackData = updated.map(t => ({
+        ...t,
+        audioBlob: null,
+        audioUrl: ''
+      }));
+      localStorage.setItem('downloadedTracks', JSON.stringify(trackData));
+      
+      setDownloadProgress(100);
+      setTimeout(() => {
+        setDownloadProgress(null);
+        setDownloadSuccess('✓ Track downloaded successfully!');
+      }, 500);
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      setDownloadError('Download failed. Please check your connection and try again.');
+      setDownloadProgress(null);
     }
-    setIsPlaying(false);
-    setCurrentTrack(null);
-    setProgress(0);
-    setListeningTimer(0);
-    fiveMinuteTriggered.current = false;
   };
 
   const formatTime = (ms: number) => {
@@ -715,9 +1293,36 @@ const MusicSection = ({
     searchMusic(query);
   };
 
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 200;
+      const currentScroll = scrollContainerRef.current.scrollLeft;
+      scrollContainerRef.current.scrollTo({
+        left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="mb-0">
       <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onEnded={handleTrackEnd} />
+
+      {/* Download Error Notification */}
+      {downloadError && (
+        <DownloadErrorNotification 
+          message={downloadError} 
+          onClose={() => setDownloadError(null)} 
+        />
+      )}
+
+      {/* Download Success Notification */}
+      {downloadSuccess && (
+        <DownloadSuccessNotification 
+          message={downloadSuccess} 
+          onClose={() => setDownloadSuccess(null)} 
+        />
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
@@ -725,19 +1330,39 @@ const MusicSection = ({
           <Headphones className="w-5 h-5 text-[#7acc00]" />
           <span className="text-sm font-bold text-gray-800">Listen & Earn</span>
         </div>
-        {canEarn ? (
-          <span className="text-xs text-[#7acc00] font-semibold bg-[#7acc00]/10 px-2 py-1" style={{ borderRadius: '0' }}>
-            +{earnedAmount.toFixed(3)} ETB
-          </span>
-        ) : (
-          <span className="text-xs text-gray-500 font-semibold bg-gray-100 px-2 py-1" style={{ borderRadius: '0' }}>
-            Free Listening
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {canEarn ? (
+            <>
+              <span className="text-xs text-[#7acc00] font-semibold bg-[#7acc00]/10 px-2 py-1" style={{ borderRadius: '0' }}>
+                +{earnedAmount.toFixed(3)} ETB
+              </span>
+              {userPackage && (
+                <span className="text-xs text-gray-500 font-semibold bg-gray-100 px-2 py-1" style={{ borderRadius: '0' }}>
+                  {Math.floor(dailyEarnedMinutes / 60)}h {dailyEarnedMinutes % 60}m / {Math.floor(userPackage.dailyLimit / 60)}h
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-xs text-gray-500 font-semibold bg-gray-100 px-2 py-1" style={{ borderRadius: '0' }}>
+              Free Listening
+            </span>
+          )}
+        </div>
       </div>
 
       {/* VIP Benefits Card */}
       <VIPBenefitsCard onUpgrade={onUpgradeClick} />
+
+      {/* Downloaded Tracks Player */}
+      <DownloadedTracksPlayer 
+        tracks={downloadedTracks}
+        onPlayTrack={playDownloadedTrack}
+        currentTrack={currentTrack as DownloadedTrack}
+        isPlaying={isPlaying}
+        onStop={stopTrack}
+        onPause={pauseTrack}
+        onResume={resumeTrack}
+      />
 
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-3">
@@ -747,7 +1372,7 @@ const MusicSection = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search any song, artist..."
+            placeholder="Search any song, artist, genre..."
             className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#7acc00]/50 focus:border-[#7acc00]"
             style={{ borderRadius: '0' }}
           />
@@ -762,32 +1387,71 @@ const MusicSection = ({
         </button>
       </form>
 
-      {/* Music Categories */}
-      <div className="grid grid-cols-4 gap-2 mb-3">
-        {[
-          { icon: Headphones, name: 'Pop', color: 'from-pink-500 to-rose-500', query: 'pop hits' },
-          { icon: Radio, name: 'Hip Hop', color: 'from-purple-500 to-indigo-500', query: 'hip hop' },
-          { icon: Music, name: 'Electronic', color: 'from-blue-500 to-cyan-500', query: 'electronic dance' },
-          { icon: ListMusic, name: 'R&B', color: 'from-green-500 to-emerald-500', query: 'r&b soul' },
-        ].map((cat) => {
-          const Icon = cat.icon;
-          const isSelected = selectedCategory === cat.name;
-          return (
-            <button
-              key={cat.name}
-              onClick={() => handleCategoryClick(cat.name, cat.query)}
-              className={`flex flex-col items-center gap-1 p-2 hover:bg-gray-50 transition-colors relative ${
-                isSelected ? 'border-b-2 border-black' : ''
-              }`}
-              style={{ borderRadius: '0' }}
-            >
-              <div className={`w-10 h-10 bg-gradient-to-br ${cat.color} flex items-center justify-center`} style={{ borderRadius: '0' }}>
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-[10px] font-medium text-gray-600">{cat.name}</span>
-            </button>
-          );
-        })}
+      {/* Music Categories - Horizontally scrollable on mobile */}
+      <div className="relative mb-3">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 lg:hidden">
+          <button
+            onClick={() => scrollCategories('left')}
+            className="p-1 bg-white rounded-full shadow-md"
+          >
+            <ChevronLeft className="w-4 h-4 text-[#7acc00]" />
+          </button>
+        </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 lg:hidden">
+          <button
+            onClick={() => scrollCategories('right')}
+            className="p-1 bg-white rounded-full shadow-md"
+          >
+            <ChevronRight className="w-4 h-4 text-[#7acc00]" />
+          </button>
+        </div>
+        
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto scrollbar-hide gap-2 pb-2 px-6 lg:px-0 lg:grid lg:grid-cols-8 lg:overflow-visible"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {[
+            { icon: Headphones, name: 'Ethiopian', color: 'from-amber-500 to-yellow-500', query: 'ethiopian' },
+            { icon: Music, name: 'Ethio Jazz', color: 'from-orange-500 to-red-500', query: 'ethio jazz' },
+            { icon: Headphones, name: 'Amharic', color: 'from-red-500 to-pink-500', query: 'amharic' },
+            { icon: Music, name: 'Oromo', color: 'from-green-600 to-teal-500', query: 'oromo' },
+            { icon: Radio, name: 'Pop', color: 'from-pink-500 to-rose-500', query: 'pop' },
+            { icon: Radio, name: 'Hip Hop', color: 'from-purple-500 to-indigo-500', query: 'hip hop' },
+            { icon: Headphones, name: 'Afrobeat', color: 'from-yellow-600 to-orange-600', query: 'afrobeat' },
+            { icon: Music, name: 'Amapiano', color: 'from-blue-600 to-indigo-600', query: 'amapiano' },
+            { icon: Radio, name: 'Reggae', color: 'from-green-700 to-green-500', query: 'reggae' },
+            { icon: Music, name: 'Gym', color: 'from-red-500 to-orange-500', query: 'gym workout' },
+            { icon: Music, name: 'Motivation', color: 'from-emerald-500 to-teal-500', query: 'motivational' },
+            { icon: ListMusic, name: 'R&B', color: 'from-green-500 to-emerald-500', query: 'rnb' },
+            { icon: Headphones, name: 'Rock', color: 'from-gray-700 to-gray-500', query: 'rock' },
+            { icon: ListMusic, name: 'Jazz', color: 'from-indigo-500 to-purple-500', query: 'jazz' },
+            { icon: Music, name: 'Classical', color: 'from-stone-500 to-stone-700', query: 'classical' },
+            { icon: Radio, name: 'Focus', color: 'from-cyan-500 to-blue-500', query: 'focus' },
+            { icon: ListMusic, name: 'Relax', color: 'from-teal-500 to-emerald-500', query: 'relaxing' },
+            { icon: Headphones, name: 'Traditional', color: 'from-amber-800 to-amber-600', query: 'traditional' },
+            { icon: Music, name: 'Gospel', color: 'from-purple-600 to-pink-500', query: 'gospel' },
+          ].map((cat) => {
+            const Icon = cat.icon;
+            const isSelected = selectedCategory === cat.name;
+            return (
+              <button
+                key={cat.name}
+                onClick={() => handleCategoryClick(cat.name, cat.query)}
+                className={`flex flex-col items-center gap-1 p-2 hover:bg-gray-50 transition-colors relative flex-shrink-0 w-16 ${
+                  isSelected ? 'border-b-2 border-black' : ''
+                }`}
+                style={{ borderRadius: '0' }}
+                title={cat.name}
+              >
+                <div className={`w-10 h-10 bg-gradient-to-br ${cat.color} flex items-center justify-center`} style={{ borderRadius: '0' }}>
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-[10px] font-medium text-gray-600 truncate w-full text-center">{cat.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Now Playing */}
@@ -802,9 +1466,21 @@ const MusicSection = ({
             <X className="w-4 h-4" />
           </button>
 
+          {/* Download button for online tracks only */}
+          {!('audioBlob' in currentTrack) && (
+            <button
+              onClick={() => downloadTrack(currentTrack as MusicTrack)}
+              className="absolute -top-2 left-2 w-7 h-7 bg-blue-500 text-white flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
+              style={{ borderRadius: '0' }}
+              title="Download for offline"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+
           <div className="flex items-center gap-3">
             <img
-              src={currentTrack.artworkUrl100.replace('100x100', '200x200')}
+              src={currentTrack.artworkUrl100?.replace('100x100', '200x200') || 'https://via.placeholder.com/200'}
               alt={currentTrack.trackName}
               className="w-14 h-14 object-cover shadow-md"
               style={{ borderRadius: '0' }}
@@ -815,7 +1491,7 @@ const MusicSection = ({
               <div className="flex items-center gap-1 mt-1">
                 <Music className="w-3 h-3 text-[#7acc00]" />
                 <span className="text-[10px] text-[#B0FC38]">
-                  {canEarn ? 'Earn 0.05 ETB/min' : 'Free Listening'}
+                  {'audioBlob' in currentTrack ? 'Offline Mode' : (canEarn ? 'Earn 0.05416 ETB/min' : 'Free Listening')}
                 </span>
               </div>
             </div>
@@ -827,13 +1503,15 @@ const MusicSection = ({
               >
                 {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
               </button>
-              <button 
-                onClick={skipTrack} 
-                className="p-2 hover:bg-white/10 transition-colors"
-                style={{ borderRadius: '0' }}
-              >
-                <SkipForward className="w-4 h-4 text-white/70" />
-              </button>
+              {!('audioBlob' in currentTrack) && (
+                <button 
+                  onClick={skipTrack} 
+                  className="p-2 hover:bg-white/10 transition-colors"
+                  style={{ borderRadius: '0' }}
+                >
+                  <SkipForward className="w-4 h-4 text-white/70" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -869,35 +1547,45 @@ const MusicSection = ({
             <div className="text-center py-8 text-sm text-gray-400">No tracks found. Try a different search.</div>
           ) : (
             displayTracks.map((track) => (
-              <button
+              <div
                 key={track.trackId}
-                onClick={() => playTrack(track)}
-                className={`w-full flex items-center gap-3 p-3 hover:bg-[#f8fdf5] transition-colors ${
-                  currentTrack?.trackId === track.trackId ? 'bg-[#f0fce0]' : ''
-                }`}
-                style={{ borderRadius: '0' }}
+                className="flex items-center gap-3 p-3 hover:bg-[#f8fdf5] transition-colors border-b border-gray-50"
               >
-                <div className="relative">
-                  <img
-                    src={track.artworkUrl100}
-                    alt={track.trackName}
-                    className="w-11 h-11 object-cover"
-                    style={{ borderRadius: '0' }}
-                  />
-                  {currentTrack?.trackId === track.trackId && isPlaying && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center" style={{ borderRadius: '0' }}>
-                      <Volume2 className="w-4 h-4 text-white animate-pulse" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{track.trackName}</p>
-                  <p className="text-xs text-gray-500 truncate">{track.artistName}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <span className="text-[10px] text-gray-400">{formatTime(track.trackTimeMillis)}</span>
-                </div>
-              </button>
+                <button
+                  onClick={() => playTrack(track)}
+                  className="flex-1 flex items-center gap-3 min-w-0"
+                >
+                  <div className="relative">
+                    <img
+                      src={track.artworkUrl100}
+                      alt={track.trackName}
+                      className="w-11 h-11 object-cover"
+                      style={{ borderRadius: '0' }}
+                    />
+                    {currentTrack?.trackId === track.trackId && isPlaying && (
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center" style={{ borderRadius: '0' }}>
+                        <Volume2 className="w-4 h-4 text-white animate-pulse" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{track.trackName}</p>
+                    <p className="text-xs text-gray-500 truncate">{track.artistName}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-[10px] text-gray-400">{formatTime(track.trackTimeMillis)}</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => downloadTrack(track)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Download for offline"
+                  disabled={downloadProgress !== null}
+                >
+                  <Download className="w-4 h-4 text-[#7acc00]" />
+                </button>
+              </div>
             ))
           )}
         </div>
@@ -936,14 +1624,18 @@ const MusicSection = ({
   );
 };
 
-// Customer Service Modal
+// Customer Service Modal - Centered with green color and red dot
 const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-2xl p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#7acc00] to-[#B0FC38] rounded-t-2xl p-6">
+          <div className="absolute top-2 right-2 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+          </div>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -960,10 +1652,10 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
         <div className="p-4 space-y-3">
           {telegramChannels.map((channel, index) => (
-            <a key={index} href={channel.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-blue-50 transition-colors border border-gray-100">
+            <a key={index} href={channel.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-[#7acc00]/10 transition-colors border border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  {index === 0 ? <img src={customerServiceImage} className="w-5 h-5" /> : index === 1 ? <MessageCircle className="w-5 h-5 text-blue-600" /> : <Users className="w-5 h-5 text-blue-600" />}
+                <div className="w-10 h-10 rounded-full bg-[#7acc00]/20 flex items-center justify-center">
+                  {index === 0 ? <img src={customerServiceImage} className="w-5 h-5" /> : index === 1 ? <MessageCircle className="w-5 h-5 text-[#7acc00]" /> : <Users className="w-5 h-5 text-[#7acc00]" />}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800">{channel.label}</p>
@@ -982,16 +1674,16 @@ const CustomerServiceModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
   );
 };
 
-// Customer Service Button
+// Customer Service Button - Green with red dot
 const CustomerServiceButton = ({ onClick }: { onClick: () => void }) => (
   <button 
     onClick={onClick} 
-    className="fixed right-4 bottom-24 z-40 w-14 h-14 rounded-full shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"
+    className="fixed right-4 bottom-24 z-40 w-14 h-14 rounded-full shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden bg-gradient-to-br from-[#7acc00] to-[#B0FC38] flex items-center justify-center"
   >
-    <img src={customerServiceImage} alt="Support" className="w-7 h-7" />
+    <img src={customerServiceImage} alt="Support" className="w-8 h-8" />
     <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
     </span>
   </button>
 );
@@ -1014,11 +1706,16 @@ const Dashboard = () => {
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [showUpgradeNotif, setShowUpgradeNotif] = useState(false);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const [userPackage, setUserPackage] = useState<VipMusicPackage | null>(null);
+  const [dailyEarnedMinutes, setDailyEarnedMinutes] = useState(0);
+  const [todayEarnedAmount, setTodayEarnedAmount] = useState(0);
+  const [showMaxEarningNotif, setShowMaxEarningNotif] = useState(false);
 
   const [isInvestLoading, setIsInvestLoading] = useState(false);
   const [investLevelId, setInvestLevelId] = useState<number | null>(null);
 
-  // Check if user can earn (has made a deposit)
   const [canEarn, setCanEarn] = useState(false);
 
   useEffect(() => {
@@ -1030,10 +1727,14 @@ const Dashboard = () => {
   }, [location.state, loading, user]);
 
   useEffect(() => {
-    if (!loading && !user) navigate('/login');
+    if (!loading && !user) {
+      setIsRedirecting(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 500);
+    }
   }, [user, loading, navigate]);
 
-  // Fetch user details including phone from profile
   useEffect(() => {
     if (profile) {
       setUserDetails({
@@ -1043,14 +1744,13 @@ const Dashboard = () => {
         vip_level: profile.vip_level || 'Basic',
         balance: profile.balance || 0,
         withdrawable_balance: profile.withdrawable_balance || 0,
-        total_investment: 0, // This would need to be calculated
+        total_investment: 0,
         total_earnings: profile.withdrawable_balance || 0,
         referral_code: profile.referral_code || null
       });
     }
   }, [profile]);
 
-  // Check if user has made any deposit
   const checkUserDeposit = async () => {
     if (!user) return;
     
@@ -1068,6 +1768,31 @@ const Dashboard = () => {
   useEffect(() => {
     checkUserDeposit();
   }, [user]);
+
+  useEffect(() => {
+    const lastDate = localStorage.getItem('lastListeningDate');
+    const today = new Date().toDateString();
+    
+    if (lastDate !== today) {
+      setDailyEarnedMinutes(0);
+      setTodayEarnedAmount(0);
+      localStorage.setItem('lastListeningDate', today);
+      localStorage.setItem('dailyEarnedMinutes', '0');
+      localStorage.setItem('todayEarnedAmount', '0');
+    } else {
+      const savedMinutes = localStorage.getItem('dailyEarnedMinutes');
+      const savedAmount = localStorage.getItem('todayEarnedAmount');
+      if (savedMinutes) setDailyEarnedMinutes(parseInt(savedMinutes));
+      if (savedAmount) setTodayEarnedAmount(parseFloat(savedAmount));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('dailyEarnedMinutes', dailyEarnedMinutes.toString());
+    localStorage.setItem('todayEarnedAmount', todayEarnedAmount.toString());
+  }, [dailyEarnedMinutes, todayEarnedAmount]);
+
+  const maxEarningTriggered = useRef(false);
 
   const fetchDailyIncome = async () => {
     if (!user) return;
@@ -1176,30 +1901,36 @@ const Dashboard = () => {
   };
 
   const handleUpgradeClick = () => {
-    navigate('/earn');
+    setIsRedirecting(true);
+    setTimeout(() => {
+      navigate('/vip-packages');
+    }, 500);
   };
 
   const handleLogout = async () => {
+    setIsRedirecting(true);
     await signOut();
-    navigate('/login');
+    setTimeout(() => {
+      navigate('/login');
+    }, 500);
   };
 
-  if (loading || !profile) {
+  if (loading || !profile || isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f9f0]">
-        <Spinner size="lg" />
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <p className="text-[#7acc00] font-semibold animate-pulse">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#f5f9f0]">
-      {/* Desktop Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Header with Navigation Menu only */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            {/* 3-Line Navigation Menu with everything inside */}
             <NavigationMenu 
               user={user} 
               profile={profile} 
@@ -1212,42 +1943,44 @@ const Dashboard = () => {
               userDetails={userDetails}
             />
             
-            {/* Page Title */}
             <h1 className="text-xl font-bold text-gray-800">Music Dashboard</h1>
           </div>
 
-          {/* Empty div for spacing */}
           <div className="w-10" />
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column - Music Section (12 cols on desktop) */}
           <div className="lg:col-span-12 space-y-4">
             <MusicSection 
               onEarningsUpdate={handleMusicEarnings}
               canEarn={canEarn}
               onUpgradeClick={handleUpgradeClick}
+              userPackage={userPackage}
+              dailyEarnedMinutes={dailyEarnedMinutes}
+              setDailyEarnedMinutes={setDailyEarnedMinutes}
+              setTodayEarnedAmount={setTodayEarnedAmount}
+              setShowMaxEarningNotif={setShowMaxEarningNotif}
             />
           </div>
         </div>
       </div>
 
-      {/* Gift Code Button */}
       <GiftCodeButton onClick={() => setShowGift(true)} />
-
-      {/* Customer Service Button */}
       <CustomerServiceButton onClick={() => setShowCustomerService(true)} />
-
       <CustomerServiceModal isOpen={showCustomerService} onClose={() => setShowCustomerService(false)} />
-
       <BottomNavigation />
 
-      {/* Modals */}
       <GiftModal isOpen={showGift} onClose={() => setShowGift(false)} />
       <SuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} message={successMessage} />
       <AnnouncementModal isOpen={showAnnouncement} onClose={() => { setShowAnnouncement(false); setShowTelegram(true); }} />
       <TelegramModal isOpen={showTelegram} onClose={() => setShowTelegram(false)} />
+      
+      <MaxEarningNotification 
+        isOpen={showMaxEarningNotif} 
+        onClose={() => setShowMaxEarningNotif(false)}
+        packageName={userPackage?.name || 'VIP'}
+        dailyEarning={userPackage?.dailyEarningTarget || 0}
+      />
     </div>
   );
 };

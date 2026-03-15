@@ -352,13 +352,7 @@
   word-wrap: break-word;
 }
 
-/* Fix for text in buttons */
-button, .btn {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
+/* REMOVED button text overflow fixes */
 
 /* Fix for text in links */
 a {
@@ -447,11 +441,7 @@ li {
     padding-right: 0.75rem !important;
   }
   
-  /* Make buttons more compact */
-  button, .btn {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
+  /* REMOVED button padding adjustments */
 }
 
 @media (max-width: 480px) {

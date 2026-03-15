@@ -25,7 +25,10 @@ import MicroSavings from './pages/MicroSavings';
 import BankCardPage from './pages/BankCardPage';
 import { Deposit } from './pages/Deposit';
 import { Withdraw } from './pages/Withdraw';
-import { BottomNavigation } from './components/BottomNavigation'; // ✅ FIXED: Changed to named import
+import { BottomNavigation } from './components/BottomNavigation';
+
+// ✅ ADD THIS IMPORT - Create this file in your pages folder
+import VIPPackages from './pages/VIPPackages';
 
 const queryClient = new QueryClient();
 
@@ -150,6 +153,13 @@ const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      
+      {/* ✅ NEW VIP PACKAGES ROUTE - Add this before other routes */}
+      <Route path="/vip-packages" element={
+        <AppLayout>
+          <VIPPackages />
+        </AppLayout>
+      } />
       
       {/* Protected routes wrapped with AppLayout */}
       <Route path="/dashboard" element={
