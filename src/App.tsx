@@ -25,7 +25,7 @@ import MicroSavings from './pages/MicroSavings';
 import BankCardPage from './pages/BankCardPage';
 import { Deposit } from './pages/Deposit';
 import { Withdraw } from './pages/Withdraw';
-import BottomNavigation from './components/BottomNavigation'; // Add this import
+import { BottomNavigation } from './components/BottomNavigation'; // ✅ FIXED: Changed to named import
 
 const queryClient = new QueryClient();
 

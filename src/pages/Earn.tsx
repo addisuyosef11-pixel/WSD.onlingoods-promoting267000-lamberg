@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -7,12 +7,11 @@ import { DepositModal } from '@/components/DepositModal';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import SeriesProductCard from '@/components/SeriesProductCard';
 import SeriesTabs from '@/components/SeriesTabs';
-import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, PiggyBank, Package } from 'lucide-react';
+import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, PiggyBank, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
 import customerServiceImg from '@/assets/customer-service.png';
-import microSavingImg from '@/assets/micro-saving.png';
 
 interface VipLevel {
   id: number;
@@ -28,6 +27,84 @@ interface VipLevel {
   purchase_limit: number;
 }
 
+// VIP Card Component - With image touching corners
+const VipCard = ({ 
+  level, 
+  onInvest
+}: { 
+  level: VipLevel; 
+  onInvest: (level: VipLevel) => void;
+}) => {
+  return (
+    <div 
+      className="w-full rounded-xl overflow-hidden shadow-xl cursor-pointer transition-all hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
+      style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}
+      onClick={() => onInvest(level)}
+    >
+      <div className="relative">
+        {/* Decorative circles */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 z-0" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 z-0" />
+        
+        {/* Title at top with black background and golden text - positioned absolute over image */}
+        <div className="absolute top-0 left-0 right-0 z-20 p-4">
+          <div className="inline-block bg-black/80 px-4 py-2 rounded-lg">
+            <h3 className="text-yellow-400 font-bold text-lg">{level.name}</h3>
+          </div>
+        </div>
+
+        {/* Image - enlarged to touch corners */}
+        <div className="w-full">
+          <div className="relative w-full h-56 flex items-center justify-center bg-white/10 overflow-hidden">
+            {level.image_url ? (
+              <img 
+                src={level.image_url} 
+                alt={level.name} 
+                className="w-full h-full object-cover" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200/7acc00/ffffff?text=VIP';
+                }}
+              />
+            ) : (
+              <Package className="w-24 h-24 text-white" />
+            )}
+          </div>
+        </div>
+
+        {/* Price and Stats Section */}
+        <div className="relative z-10 p-5">
+          {/* Price */}
+          <div className="text-center mb-3">
+            <span className="text-3xl font-bold text-white">{level.price.toLocaleString()}</span>
+            <span className="text-white/80 text-sm ml-1">ETB</span>
+          </div>
+
+          {/* Stats in grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="text-center">
+              <div className="text-white/80 text-xs">Daily</div>
+              <div className="text-white font-bold text-sm">{level.daily_income.toLocaleString()} ETB</div>
+            </div>
+            <div className="text-center">
+              <div className="text-white/80 text-xs">Cycle</div>
+              <div className="text-white font-bold text-sm">{level.cycle_days} days</div>
+            </div>
+            <div className="text-center col-span-2">
+              <div className="text-white/80 text-xs">Total Return</div>
+              <div className="text-white font-bold text-base">{(level.daily_income * level.cycle_days).toLocaleString()} ETB</div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <button className="w-full py-3 bg-white rounded-lg text-[#2d3a2d] font-semibold text-base hover:bg-white/90 transition-colors shadow-md">
+            Invest Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Earn = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
   const { t } = useLanguage();
@@ -40,19 +117,19 @@ const Earn = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<VipLevel | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  
+  // Carousel state
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [carouselLevels, setCarouselLevels] = useState<VipLevel[]>([]);
+  
+  // Auto-slide functionality
+  const autoSlideInterval = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
     }
   }, [user, loading, navigate]);
-
-  // Navigate to MicroSavings when M series is selected
-  useEffect(() => {
-    if (activeSeries === 'M') {
-      navigate('/micro-savings');
-    }
-  }, [activeSeries, navigate]);
 
   useEffect(() => {
     const fetchVipLevels = async () => {
@@ -64,12 +141,52 @@ const Earn = () => {
       
       if (data) {
         setVipLevels(data as VipLevel[]);
+        // Get all P and B series for carousel (limit to 5)
+        const featured = (data as VipLevel[])
+          .filter(level => level.series === 'P' || level.series === 'B')
+          .slice(0, 5); // Show only 5 products
+        setCarouselLevels(featured);
       }
       setLoadingLevels(false);
     };
 
     fetchVipLevels();
   }, []);
+
+  // Auto-slide setup
+  useEffect(() => {
+    if (carouselLevels.length > 1) {
+      autoSlideInterval.current = setInterval(() => {
+        goToNext();
+      }, 5000); // Change card every 5 seconds
+    }
+
+    return () => {
+      if (autoSlideInterval.current) {
+        clearInterval(autoSlideInterval.current);
+      }
+    };
+  }, [carouselLevels.length]);
+
+  // Navigation functions
+  const goToPrevious = () => {
+    setCurrentCardIndex((prev) => 
+      prev === 0 ? carouselLevels.length - 1 : prev - 1
+    );
+    // Reset auto-slide timer
+    if (autoSlideInterval.current) {
+      clearInterval(autoSlideInterval.current);
+      autoSlideInterval.current = setInterval(() => {
+        goToNext();
+      }, 5000);
+    }
+  };
+
+  const goToNext = () => {
+    setCurrentCardIndex((prev) => 
+      prev === carouselLevels.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -111,7 +228,7 @@ const Earn = () => {
 
     if (data) {
       setShowPurchaseModal(false);
-      setSuccessMessage(`${selectedLevel.name} added to cart and purchased successfully!`);
+      setSuccessMessage(`${selectedLevel.name} purchased successfully!`);
       setShowSuccessModal(true);
       await refreshProfile();
     } else {
@@ -126,7 +243,6 @@ const Earn = () => {
     setShowSuccessModal(true);
   };
 
-  const filteredLevels = vipLevels.filter(level => level.series === activeSeries);
   const videosFromDb = vipLevels.filter(l => !!l.video_url);
 
   if (loading || !profile) {
@@ -181,23 +297,84 @@ const Earn = () => {
           </div>
         </div>
 
-        {/* Microsavings Promo Card */}
-        <div className="relative mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#7acc00] to-[#B0FC38] overflow-hidden cursor-pointer hover:shadow-lg transition-all active:scale-98"
-             onClick={() => navigate('/micro-savings')}>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
-          <div className="relative flex items-center gap-4">
-            <img src={microSavingImg} alt="Micro Savings" className="w-16 h-16 object-contain" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <PiggyBank className="w-4 h-4 text-white" />
-                <h3 className="font-bold text-white">Microsavings</h3>
-              </div>
-              <p className="text-white/90 text-xs mb-2">Start saving from 100 ETB and earn daily returns</p>
-              <span className="inline-block bg-white text-[#2d3a2d] px-3 py-1 rounded-full text-xs font-semibold">
-                Learn More →
-              </span>
+        {/* VIP Cards Carousel - One card at a time with side arrows */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-[#2d3a2d] flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#7acc00]" />
+              Featured VIP Packages
+            </h2>
+            <div className="text-sm text-[#6b7b6b]">
+              {currentCardIndex + 1} / {carouselLevels.length}
             </div>
           </div>
+
+          {loadingLevels ? (
+            <div className="flex justify-center py-12">
+              <Spinner />
+            </div>
+          ) : carouselLevels.length > 0 ? (
+            <div className="relative flex items-center">
+              {/* Left Arrow - outside card */}
+              {carouselLevels.length > 1 && (
+                <button
+                  onClick={goToPrevious}
+                  className="absolute -left-3 z-30 p-2 rounded-full bg-white shadow-lg hover:shadow-xl hover:scale-110 transition-all border border-[#e2e8e2]"
+                  aria-label="Previous"
+                >
+                  <ChevronLeft className="w-6 h-6 text-[#7acc00]" />
+                </button>
+              )}
+
+              {/* Card Container */}
+              <div className="flex-1 mx-8">
+                <VipCard 
+                  level={carouselLevels[currentCardIndex]} 
+                  onInvest={openPurchaseModal}
+                />
+              </div>
+
+              {/* Right Arrow - outside card */}
+              {carouselLevels.length > 1 && (
+                <button
+                  onClick={goToNext}
+                  className="absolute -right-3 z-30 p-2 rounded-full bg-white shadow-lg hover:shadow-xl hover:scale-110 transition-all border border-[#e2e8e2]"
+                  aria-label="Next"
+                >
+                  <ChevronRight className="w-6 h-6 text-[#7acc00]" />
+                </button>
+              )}
+
+              {/* Dots indicator */}
+              <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-2">
+                {carouselLevels.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setCurrentCardIndex(index);
+                      // Reset auto-slide timer
+                      if (autoSlideInterval.current) {
+                        clearInterval(autoSlideInterval.current);
+                        autoSlideInterval.current = setInterval(() => {
+                          goToNext();
+                        }, 5000);
+                      }
+                    }}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentCardIndex 
+                        ? 'w-6 bg-[#7acc00]' 
+                        : 'bg-gray-300 hover:bg-[#7acc00]/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-xl border border-[#e2e8e2]">
+              <Package className="w-12 h-12 text-[#6b7b6b] mx-auto mb-2" />
+              <p className="text-[#2d3a2d] font-medium">No VIP packages available</p>
+            </div>
+          )}
         </div>
 
         {/* Customer Service & How to Earn Card */}
@@ -237,19 +414,21 @@ const Earn = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredLevels.length > 0 ? (
-              filteredLevels.map((level) => (
-                <SeriesProductCard
-                  key={level.id}
-                  id={level.id}
-                  name={level.name}
-                  price={level.price}
-                  dailyIncome={level.daily_income}
-                  cycleDays={level.cycle_days}
-                  imageUrl={level.image_url}
-                  onAddToCart={() => openPurchaseModal(level)}
-                />
-              ))
+            {vipLevels.filter(level => level.series === activeSeries).length > 0 ? (
+              vipLevels
+                .filter(level => level.series === activeSeries)
+                .map((level) => (
+                  <SeriesProductCard
+                    key={level.id}
+                    id={level.id}
+                    name={level.name}
+                    price={level.price}
+                    dailyIncome={level.daily_income}
+                    cycleDays={level.cycle_days}
+                    imageUrl={level.image_url}
+                    onAddToCart={() => openPurchaseModal(level)}
+                  />
+                ))
             ) : (
               <div className="text-center py-12 bg-white rounded-2xl border border-[#e2e8e2]">
                 <Package className="w-12 h-12 text-[#6b7b6b] mx-auto mb-3" />
