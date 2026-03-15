@@ -25,6 +25,7 @@ import MicroSavings from './pages/MicroSavings';
 import BankCardPage from './pages/BankCardPage';
 import { Deposit } from './pages/Deposit';
 import { Withdraw } from './pages/Withdraw';
+import BottomNavigation from './components/BottomNavigation'; // Add this import
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,33 @@ const MetaTagsUpdater = () => {
   return null;
 };
 
+// Layout wrapper component to conditionally show BottomNavigation
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  
+  // Define routes where bottom navigation should NOT appear
+  const hideNavigationRoutes = ['/login', '/signup', '/'];
+  const shouldHideNavigation = hideNavigationRoutes.includes(location.pathname);
+  
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* MetaTagsUpdater goes here to access useLocation hook */}
+      <MetaTagsUpdater />
+      
+      {/* Main content with proper overflow handling */}
+      <div className={`
+        ${!shouldHideNavigation ? 'pb-20' : ''} /* Add padding bottom when nav is visible */
+        w-full max-w-full overflow-x-hidden
+      `}>
+        {children}
+      </div>
+      
+      {/* Bottom Navigation - only show on authenticated pages */}
+      {!shouldHideNavigation && <BottomNavigation />}
+    </div>
+  );
+};
+
 // Inner component that can access auth context
 const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
   const { loading: authLoading } = useAuth();
@@ -118,32 +146,89 @@ const AppContent = ({ onSplashFinish }: { onSplashFinish: () => void }) => {
   }
 
   return (
-    <BrowserRouter>
-      {/* MetaTagsUpdater goes here to access useLocation hook */}
-      <MetaTagsUpdater />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/earn/:levelId" element={<Earn />} />
-        <Route path="/earn" element={<Earn />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/transactions" element={<TransactionHistory />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/service" element={<CustomerService />} />
-        <Route path="/vip/:levelId" element={<VipDetail />} />
-        <Route path="/announcements" element={<Announcements />} />
-        <Route path="/micro-savings" element={<MicroSavings />} />
-        <Route path="/bank-cards" element={<BankCardPage />} />
-        <Route path="/deposit" element={<Deposit />} />
-        <Route path="/withdraw" element={<Withdraw />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      
+      {/* Protected routes wrapped with AppLayout */}
+      <Route path="/dashboard" element={
+        <AppLayout>
+          <Dashboard />
+        </AppLayout>
+      } />
+      <Route path="/earn/:levelId" element={
+        <AppLayout>
+          <Earn />
+        </AppLayout>
+      } />
+      <Route path="/earn" element={
+        <AppLayout>
+          <Earn />
+        </AppLayout>
+      } />
+      <Route path="/orders" element={
+        <AppLayout>
+          <Orders />
+        </AppLayout>
+      } />
+      <Route path="/team" element={
+        <AppLayout>
+          <Team />
+        </AppLayout>
+      } />
+      <Route path="/profile" element={
+        <AppLayout>
+          <Profile />
+        </AppLayout>
+      } />
+      <Route path="/transactions" element={
+        <AppLayout>
+          <TransactionHistory />
+        </AppLayout>
+      } />
+      <Route path="/settings" element={
+        <AppLayout>
+          <Settings />
+        </AppLayout>
+      } />
+      <Route path="/service" element={
+        <AppLayout>
+          <CustomerService />
+        </AppLayout>
+      } />
+      <Route path="/vip/:levelId" element={
+        <AppLayout>
+          <VipDetail />
+        </AppLayout>
+      } />
+      <Route path="/announcements" element={
+        <AppLayout>
+          <Announcements />
+        </AppLayout>
+      } />
+      <Route path="/micro-savings" element={
+        <AppLayout>
+          <MicroSavings />
+        </AppLayout>
+      } />
+      <Route path="/bank-cards" element={
+        <AppLayout>
+          <BankCardPage />
+        </AppLayout>
+      } />
+      <Route path="/deposit" element={
+        <AppLayout>
+          <Deposit />
+        </AppLayout>
+      } />
+      <Route path="/withdraw" element={
+        <AppLayout>
+          <Withdraw />
+        </AppLayout>
+      } />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
@@ -159,13 +244,15 @@ const App = () => {
       <LanguageProvider>
         <AuthProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {showSplash ? (
-              <SplashScreen onFinish={handleSplashFinish} />
-            ) : (
-              <AppContent onSplashFinish={handleSplashFinish} />
-            )}
+            <BrowserRouter> {/* Single BrowserRouter here */}
+              <Toaster />
+              <Sonner />
+              {showSplash ? (
+                <SplashScreen onFinish={handleSplashFinish} />
+              ) : (
+                <AppContent onSplashFinish={handleSplashFinish} />
+              )}
+            </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
       </LanguageProvider>
