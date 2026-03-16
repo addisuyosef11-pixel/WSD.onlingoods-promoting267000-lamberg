@@ -1,18 +1,56 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { Search } from 'lucide-react';
-import { SuccessModal } from '@/components/SuccessModal';
+import {
+  ChevronRight, MessageCircle, Send, ChevronDown, ChevronUp, Copy, Check, Headphones, Music, TrendingUp
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Spinner } from '@/components/Spinner';
-import boostIcon from '@/assets/boost-icon.png';
-import emptyBox from '@/assets/empty-box.png';
+import rechargeIcon from '@/assets/icon-recharge.png';
+import withdrawIcon from '@/assets/icon-withdraw.png';
+import userAvatarIcon from '@/assets/icon-user-avatar.png';
+import customerServiceIcon from '@/assets/customer-service.png';
+import iconGift from '@/assets/icon-gift.png';
+import iconChat from '@/assets/icon-chat.png';
+import iconDollar from '@/assets/icon-dollar.png';
+import iconDownload from '@/assets/icon-download.png';
+import iconLogout from '@/assets/icon-logout.png';
+import iconBankcard from '@/assets/icon-bankcard.png';
+import iconSettingsGear from '@/assets/icon-settings-gear.png';
 
-interface ProductClaim {
-  transaction_id: string;
-  last_claim_at: string;
+// Import VIP package images
+import vip1 from '@/assets/vip_1.png';
+import vip2 from '@/assets/vip_2.png';
+import vip3 from '@/assets/vip_3.png';
+import vip4 from '@/assets/vip_4.png';
+import vip5 from '@/assets/vip_5.png';
+import vip6 from '@/assets/vip_6.png';
+import vip7 from '@/assets/vip_7.png';
+import vip8 from '@/assets/vip_8.png';
+
+interface DailyIncome {
+  today_income: number;
+  yesterday_income: number;
+  last_income_transfer_at: string | null;
+  last_yesterday_claim_at: string | null;
+}
+
+interface UserDetails {
+  full_name: string | null;
+  phone: string;
+  email: string | null;
+  created_at: string;
+  vip_level_name: string;
+  vip_level_id: number;
+  account_number: string;
+  referral_code: string | null;
+  total_investment: number;
+  total_earnings: number;
+  balance: number;
+  withdrawable_balance: number;
 }
 
 interface UserProduct {
@@ -22,91 +60,50 @@ interface UserProduct {
   price: number;
   cycleDays: number;
   dailyIncome: number;
-  createDate: string;
-  lastClaimAt: Date | null;
-  canClaim: boolean;
-  imageUrl: string | null;
-  daysElapsed: number;
-  isExpired: boolean;
+  image: string;
+  isActive: boolean;
 }
 
-type TabType = 'all' | 'active' | 'expired';
-
-const OrderProductCard: React.FC<{
-  product: UserProduct;
-  onGet: () => void;
-  claiming: boolean;
-  claimingId: string | null;
-}> = ({ product, onGet, claiming, claimingId }) => {
-  const { t } = useLanguage();
-  const isClaimingThis = claiming && claimingId === product.id;
-  const canClaim = product.canClaim && !claiming && !product.isExpired;
-
-  return (
-    <div className="bg-card rounded-xl border border-border p-4 mb-3">
-      <div className="flex gap-3">
-        <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-          {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain" />
-          ) : (
-            <span className="text-3xl">👤</span>
-          )}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-display text-base font-bold text-foreground mb-2">{product.name}</h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
-            <span className="text-muted-foreground">{t('Price')}</span>
-            <span className="text-primary font-semibold text-right">{product.price.toLocaleString()} ETB</span>
-            <span className="text-muted-foreground">{t('Cycle')}</span>
-            <span className="text-primary font-semibold text-right">{product.cycleDays} {t('Days')}</span>
-            <span className="text-muted-foreground">{t('Daily Income')}</span>
-            <span className="text-green-600 font-semibold text-right">{product.dailyIncome.toLocaleString()} ETB</span>
-            <span className="text-muted-foreground">{t('Create')}</span>
-            <span className="text-primary font-semibold text-right">{product.createDate}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Boost button */}
-      {product.isExpired ? (
-        <div className="w-full mt-3 py-2 text-center text-sm font-semibold text-muted-foreground bg-muted rounded-lg">
-          {t('Expired')}
-        </div>
-      ) : (
-        <button
-          onClick={onGet}
-          disabled={!canClaim}
-          className={`w-full mt-3 flex items-center justify-center gap-2 py-2 font-semibold rounded-lg transition-all ${
-            !canClaim ? 'bg-gray-300' : ''
-          }`}
-          style={canClaim ? { background: 'linear-gradient(135deg, #00c853, #7acc00, #B0FC38)' } : undefined}
-        >
-          {canClaim ? (
-            <>
-              <img src={boostIcon} alt="Boost" className="w-7 h-7 rounded-md animate-pulse" />
-              <span className="text-white font-bold text-sm">{isClaimingThis ? t('Claiming...') : t('Boost')}</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground text-sm font-semibold">{t('Claimed')}</span>
-          )}
-        </button>
-      )}
-    </div>
-  );
-};
-
-const Orders = () => {
-  const { user, loading, profile, refreshProfile } = useAuth();
+const Profile = () => {
+  const { user, profile, loading, signOut, refreshProfile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [products, setProducts] = useState<UserProduct[]>([]);
-  const [claiming, setClaiming] = useState(false);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [productClaims, setProductClaims] = useState<Map<string, Date>>(new Map());
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [dailyIncome, setDailyIncome] = useState<DailyIncome | null>(null);
+  const [rewardBalance, setRewardBalance] = useState(0);
+  const [investmentEarnings, setInvestmentEarnings] = useState(0);
+  const [teamEarnings, setTeamEarnings] = useState(0);
+  const [threePercentEarnings, setThreePercentEarnings] = useState(0);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [userVipPackages, setUserVipPackages] = useState<UserProduct[]>([]);
+  const [selectedVipImage, setSelectedVipImage] = useState<string | null>(null);
+  const [musicEarnings, setMusicEarnings] = useState(0);
+
+  // Package images mapping
+  const packageImages: { [key: number]: string } = {
+    1: vip1,
+    2: vip2,
+    3: vip3,
+    4: vip4,
+    5: vip5,
+    6: vip6,
+    7: vip7,
+    8: vip8,
+  };
+
+  // Package badges mapping
+  const packageBadges: { [key: number]: { text: string; color: string } } = {
+    1: { text: 'STARTER', color: 'bg-blue-500' },
+    2: { text: 'BRONZE', color: 'bg-amber-700' },
+    3: { text: '⭐ POPULAR', color: 'bg-purple-600' },
+    4: { text: 'GOLD', color: 'bg-yellow-600' },
+    5: { text: 'PLATINUM', color: 'bg-indigo-600' },
+    6: { text: 'ELITE', color: 'bg-blue-600' },
+    7: { text: 'ROYAL', color: 'bg-red-600' },
+    8: { text: '👑 LEGEND', color: 'bg-gradient-to-r from-purple-600 to-pink-600' },
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -114,166 +111,217 @@ const Orders = () => {
     }
   }, [user, loading, navigate]);
 
-  const fetchProductClaims = async () => {
-    if (!user) return new Map<string, Date>();
+  // Fetch user's VIP packages
+  useEffect(() => {
+    const fetchUserVipPackages = async () => {
+      if (!user) return;
 
-    const { data } = await supabase
-      .from('user_product_claims')
-      .select('transaction_id, last_claim_at')
-      .eq('user_id', user.id);
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'vip_purchase')
+        .order('created_at', { ascending: false });
 
-    const claimsMap = new Map<string, Date>();
-    if (data) {
-      data.forEach((claim: ProductClaim) => {
-        claimsMap.set(claim.transaction_id, new Date(claim.last_claim_at));
+      if (!transactions || transactions.length === 0) return;
+
+      const packages: UserProduct[] = [];
+      const now = new Date();
+
+      for (const tx of transactions) {
+        const vipLevel = tx.vip_level_id || parseInt(tx.description?.match(/VIP Level (\d+)/)?.[1] || '0');
+        if (vipLevel === 0 || vipLevel > 8) continue;
+
+        const { data: vipInfo } = await supabase
+          .from('vip_levels')
+          .select('name, price, cycle_days, daily_income')
+          .eq('id', vipLevel)
+          .single();
+
+        if (!vipInfo) continue;
+
+        const createdAt = new Date(tx.created_at);
+        const daysElapsed = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        const isExpired = daysElapsed >= (vipInfo.cycle_days || 60);
+
+        packages.push({
+          id: tx.id,
+          vipLevel,
+          name: vipInfo.name || `VIP-${vipLevel}`,
+          price: vipInfo.price,
+          cycleDays: vipInfo.cycle_days || 60,
+          dailyIncome: vipInfo.daily_income || Math.round(vipInfo.price * 0.09),
+          image: packageImages[vipLevel] || vip1,
+          isActive: !isExpired,
+        });
+      }
+
+      setUserVipPackages(packages);
+      
+      // Set the highest active VIP package as profile image
+      const activePackages = packages.filter(p => p.isActive);
+      if (activePackages.length > 0) {
+        // Sort by VIP level (highest first)
+        const highest = activePackages.sort((a, b) => b.vipLevel - a.vipLevel)[0];
+        setSelectedVipImage(packageImages[highest.vipLevel]);
+      }
+    };
+
+    fetchUserVipPackages();
+  }, [user]);
+
+  // Fetch music earnings from listening progress
+  useEffect(() => {
+    const fetchMusicEarnings = () => {
+      const saved = localStorage.getItem('listeningProgress');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const totalEarned = parsed.reduce((sum: number, p: any) => sum + (p.earnedToday || 0), 0);
+          setMusicEarnings(totalEarned);
+        } catch (e) {
+          console.error('Failed to load music earnings:', e);
+        }
+      }
+    };
+
+    fetchMusicEarnings();
+    // Update every minute
+    const interval = setInterval(fetchMusicEarnings, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch user details from database
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!user || !profile) return;
+      
+      // Get VIP level name
+      let vipLevelName = 'VIP 0';
+      let vipLevelId = 0;
+      if (profile.vip_level_id) {
+        const { data: vipData } = await supabase
+          .from('vip_levels')
+          .select('name, id')
+          .eq('id', profile.vip_level_id)
+          .single();
+        
+        if (vipData) {
+          vipLevelName = vipData.name;
+          vipLevelId = vipData.id;
+        }
+      }
+
+      // Format account number from phone
+      const phoneNumber = profile.phone || '';
+      const accountNumber = phoneNumber.replace(/\D/g, '');
+
+      // Get total investment from transactions
+      const { data: investments } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('type', 'vip_purchase')
+        .eq('status', 'completed');
+
+      const totalInvestment = investments?.reduce((sum, inv) => sum + inv.amount, 0) || 0;
+
+      setUserDetails({
+        full_name: profile.full_name || null,
+        phone: profile.phone || '',
+        email: profile.email || null,
+        created_at: profile.created_at || new Date().toISOString(),
+        vip_level_name: vipLevelName,
+        vip_level_id: vipLevelId,
+        account_number: accountNumber,
+        referral_code: profile.referral_code || null,
+        total_investment: totalInvestment,
+        total_earnings: profile.withdrawable_balance || 0,
+        balance: profile.balance || 0,
+        withdrawable_balance: profile.withdrawable_balance || 0,
       });
-    }
-    return claimsMap;
-  };
+    };
 
-  const fetchProducts = async () => {
+    fetchUserDetails();
+  }, [user, profile]);
+
+  const fetchDailyIncome = async () => {
     if (!user) return;
-
-    const claimsMap = await fetchProductClaims();
-    setProductClaims(claimsMap);
-
-    const { data: transactions } = await supabase
-      .from('transactions')
+    try {
+      await supabase.functions.invoke('transfer-income');
+    } catch (e) {
+      console.log('Income transfer check:', e);
+    }
+    const { data } = await supabase
+      .from('user_daily_income')
       .select('*')
       .eq('user_id', user.id)
-      .eq('type', 'vip_purchase')
-      .order('created_at', { ascending: false });
-
-    if (!transactions) return;
-
-    const userProducts: UserProduct[] = [];
-    const now = new Date();
-
-    for (const tx of transactions) {
-      const vipLevel = parseInt(tx.description?.match(/VIP Level (\d+)/)?.[1] || '0');
-      if (vipLevel === 0) continue;
-
-      const { data: vipInfo } = await supabase
-        .from('vip_levels')
-        .select('name, price, image_url, cycle_days, daily_income')
-        .eq('id', vipLevel)
-        .single();
-
-      const price = vipInfo?.price || Math.abs(tx.amount);
-      const cycleDays = vipInfo?.cycle_days || 60;
-      const dailyIncomeAmount = vipInfo?.daily_income || Math.round(price * 0.09);
-      const createdAt = new Date(tx.created_at);
-      const daysElapsed = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      const isExpired = daysElapsed >= cycleDays;
-
-      const lastClaimAt = claimsMap.get(tx.id) || null;
-      const canClaim = !isExpired && (!lastClaimAt || (now.getTime() - lastClaimAt.getTime() >= 24 * 60 * 60 * 1000));
-
-      userProducts.push({
-        id: tx.id,
-        vipLevel,
-        name: vipInfo?.name || `VIP-${vipLevel}`,
-        price,
-        cycleDays,
-        dailyIncome: dailyIncomeAmount,
-        createDate: createdAt.toLocaleDateString('en-GB'),
-        lastClaimAt,
-        canClaim,
-        imageUrl: vipInfo?.image_url || null,
-        daysElapsed,
-        isExpired,
+      .single();
+    if (data) {
+      setDailyIncome({
+        today_income: data.today_income,
+        yesterday_income: data.yesterday_income,
+        last_income_transfer_at: data.last_income_transfer_at,
+        last_yesterday_claim_at: data.last_yesterday_claim_at,
       });
     }
+    await refreshProfile();
+  };
 
-    setProducts(userProducts);
+  const fetchRewardBalance = async () => {
+    if (!user) return;
+    const { data: giftClaims } = await supabase
+      .from('gift_code_claims')
+      .select('amount')
+      .eq('user_id', user.id);
+    const { data: referralBonuses } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('type', 'referral_bonus')
+      .eq('status', 'completed');
+    const giftTotal = giftClaims?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
+    const referralTotal = referralBonuses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+    setRewardBalance(giftTotal + referralTotal);
+    setTeamEarnings(referralTotal);
+  };
+
+  const fetchInvestmentEarnings = async () => {
+    if (!user) return;
+    setInvestmentEarnings(profile?.withdrawable_balance || 0);
+    
+    const { data: threePercent } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('type', 'task_profit')
+      .eq('status', 'completed');
+    const total3 = threePercent?.reduce((sum, t) => sum + Number(t.amount) * 0.03, 0) || 0;
+    setThreePercentEarnings(total3);
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [user, profile]);
+    fetchDailyIncome();
+    fetchRewardBalance();
+    fetchInvestmentEarnings();
+  }, [user]);
 
-  const handleGet = async (product: UserProduct) => {
-    if (!product.canClaim || claiming || !user) return;
-    
-    setClaiming(true);
-    setClaimingId(product.id);
-    
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const copyToClipboard = async (text: string, fieldName: string) => {
     try {
-      const now = new Date();
-      
-      const { data: existingRecord } = await supabase
-        .from('user_daily_income')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (existingRecord) {
-        const { error } = await supabase
-          .from('user_daily_income')
-          .update({
-            today_income: existingRecord.today_income + product.dailyIncome,
-            last_income_transfer_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('user_daily_income')
-          .insert({
-            user_id: user.id,
-            today_income: product.dailyIncome,
-            last_income_transfer_at: new Date().toISOString(),
-          });
-        
-        if (error) throw error;
-      }
-
-      const { data: existingClaim } = await supabase
-        .from('user_product_claims')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('transaction_id', product.id)
-        .maybeSingle();
-
-      if (existingClaim) {
-        await supabase
-          .from('user_product_claims')
-          .update({ last_claim_at: now.toISOString() })
-          .eq('user_id', user.id)
-          .eq('transaction_id', product.id);
-      } else {
-        await supabase
-          .from('user_product_claims')
-          .insert({ user_id: user.id, transaction_id: product.id, last_claim_at: now.toISOString() });
-      }
-
-      setSuccessMessage(`Daily income of ${product.dailyIncome} ETB added!`);
-      setShowSuccess(true);
-      await fetchProducts();
-    } catch (error) {
-      console.error('Failed to claim income:', error);
-    } finally {
-      setClaiming(false);
-      setClaimingId(null);
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeTab === 'active') return matchesSearch && !p.isExpired;
-    if (activeTab === 'expired') return matchesSearch && p.isExpired;
-    return matchesSearch;
-  });
-
-  const tabs: { key: TabType; label: string }[] = [
-    { key: 'all', label: t('All') },
-    { key: 'active', label: t('Active') },
-    { key: 'expired', label: t('Expired') },
-  ];
-
-  if (loading) {
+  if (loading || !profile || !userDetails) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Spinner size="lg" />
@@ -281,104 +329,412 @@ const Orders = () => {
     );
   }
 
+  const balanceValue = profile.balance || 0;
+  const withdrawableValue = profile.withdrawable_balance || 0;
+  const todayIncome = dailyIncome?.today_income || 0;
+  const displayPhone = userDetails.phone.replace(/\D/g, '').slice(-9) || 'User';
+
+  // Get the highest active VIP package for display
+  const activeVipPackage = userVipPackages.filter(p => p.isActive).sort((a, b) => b.vipLevel - a.vipLevel)[0];
+  const displayVipImage = selectedVipImage || userAvatarIcon;
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f5f5f5' }}>
-      {/* Green gradient header with wave */}
-      <div className="relative" style={{ background: 'linear-gradient(180deg, #7acc00 0%, #a3e635 60%, #c8f547 100%)' }}>
-        <header className="px-4 pt-6 pb-8 relative z-10">
-          <h1 className="text-xl font-bold text-white">{t('My Orders')}</h1>
-        </header>
-        {/* Wave SVG */}
-        <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 60" preserveAspectRatio="none" style={{ height: '30px' }}>
-          <path d="M0,20 C360,60 720,0 1080,40 C1260,55 1380,25 1440,30 L1440,60 L0,60 Z" fill="#f5f5f5" />
-        </svg>
-      </div>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: '#f5f5f5' }}>
+      {/* Green gradient header */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #a3e635 0%, #d4f57a 50%, #f0f9e0 100%)' }}>
+        {/* Decorative circles */}
+        <div className="absolute top-8 right-[-40px] w-[180px] h-[180px] rounded-full" style={{ background: 'rgba(180, 230, 60, 0.4)' }} />
+        <div className="absolute top-[-20px] right-[60px] w-[120px] h-[120px] rounded-full" style={{ background: 'rgba(200, 240, 80, 0.3)' }} />
+        <div className="absolute bottom-[40px] left-[-30px] w-[100px] h-[100px] rounded-full" style={{ background: 'rgba(180, 230, 60, 0.25)' }} />
 
-      {/* Search bar */}
-      <div className="px-4 pb-3">
-        <div className="flex items-center gap-2 bg-card rounded-full border border-border px-4 py-2">
-          <Search className="w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder={t('Enter product name to search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            className="px-4 py-1.5 rounded-full text-sm font-semibold text-white"
-            style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}
-          >
-            {t('Search')}
-          </button>
-        </div>
-      </div>
+        <div className="relative z-10 max-w-md mx-auto px-5 pt-6 pb-4">
+          {/* Title row with music earnings indicator */}
+          <div className="flex items-center justify-between mb-5">
+            <h1 className="text-xl font-bold text-gray-900">{t('My Profile')}</h1>
+            <div className="flex items-center gap-2">
+              {musicEarnings > 0 && (
+                <div className="flex items-center gap-1 bg-white/30 px-2 py-1 rounded-full">
+                  <Headphones className="w-4 h-4 text-gray-700" />
+                  <span className="text-xs font-bold text-gray-700">+{musicEarnings.toFixed(2)}</span>
+                </div>
+              )}
+              <button onClick={() => setShowHelpCenter(true)} className="p-1">
+                <img src={customerServiceIcon} alt="Support" className="w-7 h-7" />
+              </button>
+            </div>
+          </div>
 
-      {/* Tabs */}
-      <div className="px-4 pb-3">
-        <div className="flex rounded-full p-1" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
-          {tabs.map((tab) => (
+          {/* User card - with VIP package image */}
+          <div className="w-full bg-[#b5e834] rounded-2xl p-4 mb-5 shadow-sm">
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${
-                activeTab === tab.key
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-white'
-              }`}
+              onClick={() => setShowUserDetails(!showUserDetails)}
+              className="w-full flex items-center gap-4"
             >
-              {tab.label}
+              <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white p-1">
+                <img 
+                  src={displayVipImage} 
+                  alt="Avatar" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex-1 text-left">
+                <span className="text-2xl font-bold text-gray-900 block">
+                  {userDetails.full_name || displayPhone}
+                </span>
+                <span className="text-sm text-gray-700">
+                  {userDetails.vip_level_name}
+                </span>
+              </div>
+              {showUserDetails ? (
+                <ChevronUp className="w-7 h-7 text-gray-700 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-7 h-7 text-gray-700 flex-shrink-0" />
+              )}
             </button>
-          ))}
+
+            {/* Show active VIP packages */}
+            {userVipPackages.length > 0 && !showUserDetails && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {userVipPackages.filter(p => p.isActive).map((pkg) => (
+                  <div key={pkg.id} className="flex items-center gap-1 bg-white/30 px-2 py-1 rounded-full">
+                    <img src={pkg.image} alt={pkg.name} className="w-4 h-4 object-contain" />
+                    <span className="text-[10px] font-semibold text-gray-800">{pkg.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Expanded user details */}
+            {showUserDetails && (
+              <div className="mt-4 pt-4 border-t border-gray-600/20 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Full Name</span>
+                  <span className="text-sm font-semibold text-gray-900">{userDetails.full_name || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Phone Number</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{userDetails.phone}</span>
+                    <button
+                      onClick={() => copyToClipboard(userDetails.phone, 'phone')}
+                      className="p-1 hover:bg-white/50 rounded transition-colors"
+                    >
+                      {copiedField === 'phone' ? (
+                        <Check className="w-3 h-3 text-green-600" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-gray-600" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Email</span>
+                  <span className="text-sm font-semibold text-gray-900">{userDetails.email || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Account Number</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{userDetails.account_number}</span>
+                    <button
+                      onClick={() => copyToClipboard(userDetails.account_number, 'account')}
+                      className="p-1 hover:bg-white/50 rounded transition-colors"
+                    >
+                      {copiedField === 'account' ? (
+                        <Check className="w-3 h-3 text-green-600" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-gray-600" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">VIP Level</span>
+                  <span className="text-sm font-semibold text-green-800 bg-green-200 px-3 py-1 rounded-full">
+                    {userDetails.vip_level_name}
+                  </span>
+                </div>
+                
+                {/* VIP Packages List */}
+                {userVipPackages.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-sm text-gray-700">Your VIP Packages</span>
+                    <div className="space-y-2">
+                      {userVipPackages.map((pkg) => {
+                        const badge = packageBadges[pkg.vipLevel as keyof typeof packageBadges];
+                        return (
+                          <div key={pkg.id} className="flex items-center gap-2 p-2 bg-white/50 rounded-lg">
+                            <img src={pkg.image} alt={pkg.name} className="w-8 h-8 object-contain" />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-gray-800">{pkg.name}</span>
+                                {badge && (
+                                  <span className={`${badge.color} text-white text-[8px] font-bold px-2 py-0.5 rounded-full`}>
+                                    {badge.text}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500">
+                                {pkg.dailyIncome} ETB/day • {pkg.cycleDays} days
+                              </p>
+                            </div>
+                            <span className={`text-xs font-semibold ${pkg.isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                              {pkg.isActive ? 'Active' : 'Expired'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Referral Code</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{userDetails.referral_code || 'N/A'}</span>
+                    {userDetails.referral_code && (
+                      <button
+                        onClick={() => copyToClipboard(userDetails.referral_code!, 'referral')}
+                        className="p-1 hover:bg-white/50 rounded transition-colors"
+                      >
+                        {copiedField === 'referral' ? (
+                          <Check className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <Copy className="w-3 h-3 text-gray-600" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Total Investment</span>
+                  <span className="text-sm font-semibold text-gray-900">{userDetails.total_investment.toLocaleString()} ETB</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Total Earnings</span>
+                  <span className="text-sm font-semibold text-green-600">{userDetails.total_earnings.toLocaleString()} ETB</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Member Since</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {new Date(userDetails.created_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Circular balance with 4 stats - Updated to include withdrawable balance */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="relative flex items-center justify-center py-4">
+              {/* Center circle - Main Balance */}
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#e5e7eb" strokeWidth="6" />
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#a3e635" strokeWidth="6"
+                    strokeDasharray={`${Math.min((balanceValue / Math.max(balanceValue, 1000)) * 339, 339)} 339`}
+                    strokeLinecap="round" transform="rotate(-90 60 60)" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xs text-gray-500">{t('Balance')}</span>
+                  <span className="text-xl font-bold text-gray-900">{balanceValue.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Four corner stats */}
+              <div className="absolute top-0 left-0 text-center w-24">
+                <p className="text-[11px] text-gray-500 leading-tight">{t('Investment')}<br/>{t('Earnings')}</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{investmentEarnings.toLocaleString()}</p>
+              </div>
+              <div className="absolute top-0 right-0 text-center w-24">
+                <p className="text-[11px] text-gray-500 leading-tight">{t('Team')}<br/>{t('Earnings')}</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{(teamEarnings + threePercentEarnings).toLocaleString()}</p>
+              </div>
+              <div className="absolute bottom-0 left-0 text-center w-24">
+                <p className="text-[11px] text-gray-500 leading-tight">{t('Gift')}<br/>{t('Earnings')}</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{rewardBalance.toLocaleString()}</p>
+              </div>
+              <div className="absolute bottom-0 right-0 text-center w-24">
+                <p className="text-[11px] text-gray-500 leading-tight">{t("Today's")}<br/>{t('Earnings')}</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{todayIncome.toLocaleString()}</p>
+              </div>
+            </div>
+
+            {/* Withdrawable Balance - Added below the circle */}
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#7acc00]" />
+                  <span className="text-sm font-medium text-gray-700">Withdrawable Balance</span>
+                </div>
+                <span className="text-lg font-bold text-[#7acc00]">{withdrawableValue.toLocaleString()} ETB</span>
+              </div>
+              
+              {/* Music Earnings Indicator */}
+              {musicEarnings > 0 && (
+                <div className="mt-2 flex items-center justify-between bg-[#f0f9e8] p-2 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Headphones className="w-4 h-4 text-[#7acc00]" />
+                    <span className="text-xs text-gray-600">Music Earnings Today</span>
+                  </div>
+                  <span className="text-sm font-bold text-[#7acc00]">+{musicEarnings.toFixed(2)} ETB</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 bg-card rounded-t-3xl px-4 pt-4 pb-24">
-        {filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <img src={emptyBox} alt="No orders" className="w-48 h-auto mb-4" />
-            <p className="text-muted-foreground text-sm">
-              {activeTab === 'expired'
-                ? t('No expired orders found')
-                : activeTab === 'active'
-                ? t('No active orders found')
-                : t('No investment orders found')}
-            </p>
+      <div className="max-w-md mx-auto px-4 mt-4">
+        {/* Recharge & Withdraw */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm mb-4">
+          <div className="grid grid-cols-3 gap-4">
+            <button onClick={() => navigate('/deposit')} className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
+                <img src={rechargeIcon} alt="Recharge" className="w-14 h-14 rounded-xl" />
+              </div>
+              <span className="text-sm font-semibold text-gray-800">{t('Recharge')}</span>
+            </button>
+            <button onClick={() => navigate('/withdraw')} className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
+                <img src={withdrawIcon} alt="Withdraw" className="w-14 h-14 rounded-xl" />
+              </div>
+              <span className="text-sm font-semibold text-gray-800">{t('Withdraw')}</span>
+            </button>
+            <button onClick={() => navigate('/settings')} className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
+                <img src={iconSettingsGear} alt="Settings" className="w-14 h-14 rounded-xl" />
+              </div>
+              <span className="text-sm font-semibold text-gray-800">{t('Settings')}</span>
+            </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredProducts.map((product) => (
-              <OrderProductCard
-                key={product.id}
-                product={product}
-                onGet={() => handleGet(product)}
-                claiming={claiming}
-                claimingId={claimingId}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
 
-      {/* Floating Boost FAB */}
-      <button
-        onClick={() => navigate('/earn')}
-        className="fixed bottom-24 right-4 z-40 flex flex-col items-center"
-      >
-        <img src={boostIcon} alt="Boost" className="w-14 h-14 rounded-2xl shadow-lg" />
-        <span className="text-xs font-bold mt-1" style={{ color: '#4caf50' }}>{t('Boost')}</span>
-      </button>
+        {/* Menu list */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+          <MenuItem
+            icon={<img src={iconBankcard} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#f0ffd6]"
+            label={t('Bank Card')}
+            onClick={() => navigate('/bank-cards')}
+          />
+          <MenuItem
+            icon={<img src={iconGift} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#fff3e0]"
+            label={t('Bonus History')}
+            onClick={() => navigate('/transactions')}
+          />
+          <MenuItem
+            icon={<img src={iconDownload} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#e8f5e9]"
+            label={t('Notifications')}
+            onClick={() => navigate('/announcements')}
+          />
+          <MenuItem
+            icon={<img src={iconDollar} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#e8f5e9]"
+            label={t('Transaction History')}
+            onClick={() => navigate('/transactions')}
+          />
+          <MenuItem
+            icon={<img src={iconChat} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#fff8e1]"
+            label={t('Help Center')}
+            onClick={() => setShowHelpCenter(true)}
+          />
+          <MenuItem
+            icon={<img src={iconLogout} alt="" className="w-7 h-7" />}
+            iconBg="bg-[#fff3e0]"
+            label={t('Log Out')}
+            onClick={handleSignOut}
+            isLast
+          />
+        </div>
+
+        <p className="text-center text-[10px] text-gray-400 mt-3 mb-2">DSW App v1.0.0</p>
+      </div>
 
       <BottomNavigation />
 
-      <SuccessModal
-        isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
-        message={successMessage}
-      />
+      {/* Help Center Modal */}
+      <Dialog open={showHelpCenter} onOpenChange={setShowHelpCenter}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={iconChat} alt="" className="w-5 h-5" />
+              {t('Help Center')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-3">
+            <button
+              onClick={() => window.open('https://t.me/Tiktokshoponline_suport', '_blank')}
+              className="w-full flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5 text-blue-600" />
+              <div className="text-left">
+                <p className="font-medium text-sm">{t('Official Support')}</p>
+                <p className="text-xs text-muted-foreground">@DSW_Support</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+            </button>
+            <button
+              onClick={() => window.open('https://t.me/etonlinejob1', '_blank')}
+              className="w-full flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <Send className="w-5 h-5 text-purple-600" />
+              <div className="text-left">
+                <p className="font-medium text-sm">{t('Public Channel')}</p>
+                <p className="text-xs text-muted-foreground">DSW Channel</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+            </button>
+            <button
+              onClick={() => window.open('https://t.me/+Jihv4uEOv0o0M2U0', '_blank')}
+              className="w-full flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5 text-green-600" />
+              <div className="text-left">
+                <p className="font-medium text-sm">{t('Discussion Group')}</p>
+                <p className="text-xs text-muted-foreground">DSW Group</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default Orders;
+const MenuItem: React.FC<{
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor?: string;
+  label: string;
+  onClick: () => void;
+  badge?: number;
+  isLast?: boolean;
+}> = ({ icon, iconBg, iconColor, label, onClick, badge, isLast }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors ${!isLast ? 'border-b border-gray-100' : ''}`}
+  >
+    <div className="flex items-center gap-4">
+      <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center ${iconColor}`}>
+        {icon}
+      </div>
+      <span className="text-sm font-medium text-gray-800">{label}</span>
+    </div>
+    <div className="flex items-center gap-2">
+      {badge && badge > 0 && (
+        <span className="w-5 h-5 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-bold">{badge}</span>
+      )}
+      <ChevronRight className="w-5 h-5 text-gray-400" />
+    </div>
+  </button>
+);
+
+export default Profile;
