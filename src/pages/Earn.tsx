@@ -5,13 +5,24 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DepositModal } from '@/components/DepositModal';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import SeriesProductCard from '@/components/SeriesProductCard';
 import SeriesTabs from '@/components/SeriesTabs';
-import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, PiggyBank, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import VIPPackages from '@/pages/VIPPackages';
+import MicroSavings from '@/pages/MicroSavings';
+import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
 import customerServiceImg from '@/assets/customer-service.png';
+
+// Import package images
+import vip1 from '@/assets/vip_1.png';
+import vip2 from '@/assets/vip_2.png';
+import vip3 from '@/assets/vip_3.png';
+import vip4 from '@/assets/vip_4.png';
+import vip5 from '@/assets/vip_5.png';
+import vip6 from '@/assets/vip_6.png';
+import vip7 from '@/assets/vip_7.png';
+import vip8 from '@/assets/vip_8.png';
 
 interface VipLevel {
   id: number;
@@ -27,80 +38,364 @@ interface VipLevel {
   purchase_limit: number;
 }
 
-// VIP Card Component - With image touching corners - MADE SMALLER
-const VipCard = ({ 
+interface MusicPackage {
+  id: number;
+  name: string;
+  price: number;
+  dailyIncome: number;
+  cycleDays: number;
+  totalReturn: number;
+  image: string;
+  badge?: string;
+  badgeColor?: string;
+}
+
+// 3D Gold Button Component (reusable)
+const GoldButton = ({ onClick, children, disabled = false, loading = false }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; loading?: boolean }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled || loading}
+    className={`w-full py-3 bg-gradient-to-b from-[#FFD700] to-[#FDB931] rounded-xl text-[#1a2a1a] font-bold text-sm shadow-[0_8px_0_0_#b37b00] hover:shadow-[0_4px_0_0_#b37b00] hover:translate-y-1 active:translate-y-2 active:shadow-[0_2px_0_0_#b37b00] transition-all duration-150 border border-[#FFE55C] disabled:opacity-50 disabled:cursor-not-allowed`}
+  >
+    {loading ? (
+      <div className="flex items-center justify-center gap-2">
+        <Spinner size="sm" />
+        <span>Processing...</span>
+      </div>
+    ) : (
+      children
+    )}
+  </button>
+);
+
+// Music Package Card Component - NO recycle arrow, image full width
+const MusicPackageCard = ({ 
+  pkg, 
+  onSelect 
+}: { 
+  pkg: MusicPackage; 
+  onSelect: (pkg: MusicPackage) => void;
+}) => {
+  return (
+    <div 
+      className="w-full rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-200"
+      onClick={() => onSelect(pkg)}
+    >
+      <div className="relative">
+        {/* Badge - positioned on image */}
+        {pkg.badge && (
+          <div className="absolute top-2 left-2 z-10">
+            <div className={`${pkg.badgeColor} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg`}>
+              {pkg.badge}
+            </div>
+          </div>
+        )}
+
+        {/* Image - Full width to edges */}
+        <div className="w-full -mx-0">
+          <div className="relative w-full h-32 bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+            <img 
+              src={pkg.image} 
+              alt={pkg.name} 
+              className="w-full h-full object-cover" 
+            />
+          </div>
+        </div>
+
+        {/* Content - with padding restored */}
+        <div className="p-4">
+          {/* Title - centered */}
+          <h3 className="text-gray-800 font-bold text-base text-center mb-2">{pkg.name}</h3>
+
+          {/* Price with green ETB - centered */}
+          <div className="text-center mb-3">
+            <span className="text-2xl font-extrabold text-gray-900">{pkg.price.toLocaleString()}</span>
+            <span className="text-[#7acc00] font-bold text-sm ml-1">ETB</span>
+          </div>
+
+          {/* Stats - Simple text boxes */}
+          <div className="grid grid-cols-3 gap-1 mb-4">
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Daily</div>
+              <div className="text-gray-800 font-bold text-sm">{pkg.dailyIncome} ETB</div>
+            </div>
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Cycle</div>
+              <div className="text-gray-800 font-bold text-sm">{pkg.cycleDays}d</div>
+            </div>
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Total</div>
+              <div className="text-gray-800 font-bold text-sm">{pkg.totalReturn.toLocaleString()} ETB</div>
+            </div>
+          </div>
+
+          {/* Invest Now Button - Gold 3D */}
+          <GoldButton onClick={() => onSelect(pkg)}>
+            Invest Now
+          </GoldButton>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Product Card Component for investment products - NO recycle arrow, image full width
+const ProductCard = ({ 
   level, 
-  onInvest
+  onInvest 
 }: { 
   level: VipLevel; 
   onInvest: (level: VipLevel) => void;
 }) => {
   return (
     <div 
-      className="w-full max-w-[300px] mx-auto rounded-xl overflow-hidden shadow-xl cursor-pointer transition-all hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
-      style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}
+      className="w-full rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-200"
       onClick={() => onInvest(level)}
     >
       <div className="relative">
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 z-0" />
-        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 z-0" />
-        
-        {/* Title at top with black background and golden text */}
-        <div className="absolute top-0 left-0 right-0 z-20 p-2 sm:p-3">
-          <div className="inline-block bg-black/80 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg">
-            <h3 className="text-yellow-400 font-bold text-sm sm:text-base">{level.name}</h3>
-          </div>
+        {/* Title - moved to top of card, full width */}
+        <div className="p-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 w-full">
+          <h3 className="text-gray-800 font-bold text-base text-center">{level.name}</h3>
         </div>
 
-        {/* Image - smaller height */}
+        {/* Image - Full width to edges, directly below title */}
         <div className="w-full">
-          <div className="relative w-full h-32 sm:h-36 md:h-40 flex items-center justify-center bg-white/10 overflow-hidden">
+          <div className="relative w-full h-32 bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
             {level.image_url ? (
               <img 
                 src={level.image_url} 
                 alt={level.name} 
                 className="w-full h-full object-cover" 
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200/7acc00/ffffff?text=VIP';
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x150/e2e8e2/2d3a2d?text=Product';
                 }}
               />
             ) : (
-              <Package className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+              <Package className="w-12 h-12 text-gray-400" />
             )}
           </div>
         </div>
 
-        {/* Price and Stats Section - more compact */}
-        <div className="relative z-10 p-3 sm:p-4">
-          {/* Price */}
-          <div className="text-center mb-2">
-            <span className="text-xl sm:text-2xl font-bold text-white">{level.price.toLocaleString()}</span>
-            <span className="text-white/80 text-xs sm:text-sm ml-1">ETB</span>
+        {/* Price and Stats Section */}
+        <div className="p-4">
+          {/* Price with green ETB - centered */}
+          <div className="text-center mb-3">
+            <span className="text-2xl font-extrabold text-gray-900">{level.price.toLocaleString()}</span>
+            <span className="text-[#7acc00] font-bold text-sm ml-1">ETB</span>
           </div>
 
-          {/* Stats in grid - more compact */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="text-center">
-              <div className="text-white/80 text-xs">Daily</div>
-              <div className="text-white font-bold text-xs sm:text-sm">{level.daily_income.toLocaleString()} ETB</div>
+          {/* Stats - Simple text boxes */}
+          <div className="grid grid-cols-3 gap-1 mb-4">
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Daily</div>
+              <div className="text-gray-800 font-bold text-sm">{level.daily_income.toLocaleString()} <span className="text-[#7acc00] text-[10px]">ETB</span></div>
             </div>
-            <div className="text-center">
-              <div className="text-white/80 text-xs">Cycle</div>
-              <div className="text-white font-bold text-xs sm:text-sm">{level.cycle_days}d</div>
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Cycle</div>
+              <div className="text-gray-800 font-bold text-sm">{level.cycle_days}d</div>
             </div>
-            <div className="text-center col-span-2">
-              <div className="text-white/80 text-xs">Total Return</div>
-              <div className="text-white font-bold text-sm sm:text-base">{(level.daily_income * level.cycle_days).toLocaleString()} ETB</div>
+            <div className="text-center bg-gray-50 py-2 rounded-lg">
+              <div className="text-gray-500 text-[10px] font-medium">Total</div>
+              <div className="text-gray-800 font-bold text-sm">{(level.daily_income * level.cycle_days).toLocaleString()} ETB</div>
             </div>
           </div>
 
-          {/* Action Button - smaller */}
-          <button className="w-full py-2 bg-white rounded-lg text-[#2d3a2d] font-semibold text-sm hover:bg-white/90 transition-colors shadow-md">
+          {/* Invest Now Button - Gold 3D */}
+          <GoldButton onClick={() => onInvest(level)}>
             Invest Now
-          </button>
+          </GoldButton>
         </div>
       </div>
+    </div>
+  );
+};
+
+// P Series Products - 2x2 grid on mobile
+const PSeriesProducts = ({ 
+  levels, 
+  onInvest,
+  loading 
+}: { 
+  levels: VipLevel[]; 
+  onInvest: (level: VipLevel) => void;
+  loading: boolean;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (levels.length === 0) {
+    return (
+      <div className="text-center py-12 bg-white rounded-2xl border border-[#e2e8e2]">
+        <Package className="w-12 h-12 text-[#6b7b6b] mx-auto mb-3" />
+        <p className="text-[#2d3a2d] font-medium">No P Series products available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 w-full">
+      {levels.map((level) => (
+        <ProductCard
+          key={level.id}
+          level={level}
+          onInvest={onInvest}
+        />
+      ))}
+    </div>
+  );
+};
+
+// B Series Products - 2x2 grid on mobile
+const BSeriesProducts = ({ 
+  levels, 
+  onInvest,
+  loading 
+}: { 
+  levels: VipLevel[]; 
+  onInvest: (level: VipLevel) => void;
+  loading: boolean;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (levels.length === 0) {
+    return (
+      <div className="text-center py-12 bg-white rounded-2xl border border-[#e2e8e2]">
+        <Package className="w-12 h-12 text-[#6b7b6b] mx-auto mb-3" />
+        <p className="text-[#2d3a2d] font-medium">No B Series products available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 w-full">
+      {levels.map((level) => (
+        <ProductCard
+          key={level.id}
+          level={level}
+          onInvest={onInvest}
+        />
+      ))}
+    </div>
+  );
+};
+
+// VIP Music Packages - 2x2 grid on mobile
+const VIPMusicPackages = ({ 
+  onSelect 
+}: { 
+  onSelect: (pkg: MusicPackage) => void;
+}) => {
+  const musicPackages: MusicPackage[] = [
+    {
+      id: 1,
+      name: "Starter Pack",
+      price: 500,
+      dailyIncome: 32.5,
+      cycleDays: 60,
+      totalReturn: 1950,
+      image: vip1,
+      badge: "NEW",
+      badgeColor: "bg-blue-500"
+    },
+    {
+      id: 2,
+      name: "Bronze",
+      price: 1000,
+      dailyIncome: 65,
+      cycleDays: 60,
+      totalReturn: 3900,
+      image: vip2,
+      badge: "BRONZE",
+      badgeColor: "bg-amber-700"
+    },
+    {
+      id: 3,
+      name: "Silver",
+      price: 2000,
+      dailyIncome: 94,
+      cycleDays: 60,
+      totalReturn: 5640,
+      image: vip3,
+      badge: "⭐ POPULAR",
+      badgeColor: "bg-purple-600"
+    },
+    {
+      id: 4,
+      name: "Gold",
+      price: 3500,
+      dailyIncome: 140,
+      cycleDays: 60,
+      totalReturn: 8400,
+      image: vip4,
+      badge: "GOLD",
+      badgeColor: "bg-yellow-600"
+    },
+    {
+      id: 5,
+      name: "Platinum",
+      price: 5000,
+      dailyIncome: 215,
+      cycleDays: 60,
+      totalReturn: 12900,
+      image: vip5,
+      badge: "PLATINUM",
+      badgeColor: "bg-indigo-600"
+    },
+    {
+      id: 6,
+      name: "Diamond",
+      price: 7500,
+      dailyIncome: 320,
+      cycleDays: 60,
+      totalReturn: 19200,
+      image: vip6,
+      badge: "ELITE",
+      badgeColor: "bg-blue-600"
+    },
+    {
+      id: 7,
+      name: "Royal",
+      price: 10000,
+      dailyIncome: 430,
+      cycleDays: 60,
+      totalReturn: 25800,
+      image: vip7,
+      badge: "ROYAL",
+      badgeColor: "bg-red-600"
+    },
+    {
+      id: 8,
+      name: "Legend",
+      price: 15000,
+      dailyIncome: 650,
+      cycleDays: 60,
+      totalReturn: 39000,
+      image: vip8,
+      badge: "👑 LEGEND",
+      badgeColor: "bg-gradient-to-r from-purple-600 to-pink-600"
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 w-full">
+      {musicPackages.map((pkg) => (
+        <MusicPackageCard
+          key={pkg.id}
+          pkg={pkg}
+          onSelect={onSelect}
+        />
+      ))}
     </div>
   );
 };
@@ -110,20 +405,19 @@ const Earn = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
-  const [activeSeries, setActiveSeries] = useState<'P' | 'B' | 'M'>('P');
+  const [activeSeries, setActiveSeries] = useState<'P' | 'B' | 'M' | 'VIP'>('P');
   const [showDeposit, setShowDeposit] = useState(false);
   const [loadingLevels, setLoadingLevels] = useState(true);
   const [showHowToEarn, setShowHowToEarn] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<VipLevel | null>(null);
+  const [selectedMusicPackage, setSelectedMusicPackage] = useState<MusicPackage | null>(null);
+  const [showMusicModal, setShowMusicModal] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
-  
-  // Carousel state
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [carouselLevels, setCarouselLevels] = useState<VipLevel[]>([]);
-  
-  // Auto-slide functionality
-  const autoSlideInterval = useRef<NodeJS.Timeout>();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -141,11 +435,6 @@ const Earn = () => {
       
       if (data) {
         setVipLevels(data as VipLevel[]);
-        // Get all P and B series for carousel (limit to 5)
-        const featured = (data as VipLevel[])
-          .filter(level => level.series === 'P' || level.series === 'B')
-          .slice(0, 5);
-        setCarouselLevels(featured);
       }
       setLoadingLevels(false);
     };
@@ -153,53 +442,14 @@ const Earn = () => {
     fetchVipLevels();
   }, []);
 
-  // Auto-slide setup
-  useEffect(() => {
-    if (carouselLevels.length > 1) {
-      autoSlideInterval.current = setInterval(() => {
-        goToNext();
-      }, 5000);
-
-      return () => {
-        if (autoSlideInterval.current) {
-          clearInterval(autoSlideInterval.current);
-        }
-      };
-    }
-  }, [carouselLevels.length]);
-
-  // Navigation functions
-  const goToPrevious = () => {
-    setCurrentCardIndex((prev) => 
-      prev === 0 ? carouselLevels.length - 1 : prev - 1
-    );
-    resetAutoSlide();
-  };
-
-  const goToNext = () => {
-    setCurrentCardIndex((prev) => 
-      prev === carouselLevels.length - 1 ? 0 : prev + 1
-    );
-    resetAutoSlide();
-  };
-
-  const resetAutoSlide = () => {
-    if (autoSlideInterval.current) {
-      clearInterval(autoSlideInterval.current);
-      autoSlideInterval.current = setInterval(() => {
-        goToNext();
-      }, 5000);
-    }
-  };
-
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-
   const openPurchaseModal = (level: VipLevel) => {
     setSelectedLevel(level);
     setShowPurchaseModal(true);
+  };
+
+  const openMusicPackageModal = (pkg: MusicPackage) => {
+    setSelectedMusicPackage(pkg);
+    setShowMusicModal(true);
   };
 
   const handleAddToCart = async () => {
@@ -242,6 +492,29 @@ const Earn = () => {
     }
   };
 
+  const handleMusicPurchase = async () => {
+    if (!profile || !user || !selectedMusicPackage) return;
+
+    if (profile.balance < selectedMusicPackage.price) {
+      setShowMusicModal(false);
+      setErrorMessage('Insufficient balance. Please deposit first.');
+      setShowErrorModal(true);
+      setShowDeposit(true);
+      return;
+    }
+
+    setPurchasing(true);
+
+    // Simulate purchase - replace with actual Supabase call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setPurchasing(false);
+    setShowMusicModal(false);
+    setSuccessMessage(`${selectedMusicPackage.name} unlocked successfully! Start listening to earn.`);
+    setShowSuccessModal(true);
+    await refreshProfile();
+  };
+
   const handleDepositSubmitted = () => {
     setSuccessMessage('Deposit submitted! Awaiting admin approval.');
     setShowSuccessModal(true);
@@ -257,194 +530,103 @@ const Earn = () => {
     );
   }
 
+  // Filter levels by series
+  const pSeriesLevels = vipLevels.filter(level => level.series === 'P');
+  const bSeriesLevels = vipLevels.filter(level => level.series === 'B');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
-      {/* Decorative Elements - responsive sizing */}
-      <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
-      <div className="absolute bottom-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-tr from-[#00c853]/10 to-[#7acc00]/10 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] w-full overflow-x-hidden">
+      {/* Decorative Elements */}
+      <div className="fixed top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-tr from-[#00c853]/10 to-[#7acc00]/10 rounded-full blur-3xl pointer-events-none" />
       
-      {/* Responsive container */}
-      <div className="relative px-3 sm:px-4 md:px-6 pb-24 max-w-7xl mx-auto">
-        {/* Header - responsive */}
-        <header className="sticky top-0 z-10 bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] pt-3 sm:pt-4 pb-2 mb-4 backdrop-blur-sm bg-opacity-90">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => navigate('/dashboard')}
-              className="hover:bg-[#7acc00]/10 active:bg-[#7acc00]/20 transition-all"
-            >
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d3a2d]" />
-            </Button>
-            <div>
-              <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-[#2d3a2d] to-[#4a5a4a] bg-clip-text text-transparent">
-                {t('Investment Products')}
-              </h1>
-              <p className="text-xs sm:text-sm text-[#6b7b6b]">Choose your earning path</p>
-            </div>
-          </div>
-        </header>
-
-        {/* Balance Card - responsive */}
-        <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#2d3a2d] to-[#1f2a1f] text-white shadow-lg">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm text-white/80">Available Balance</span>
-            <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-[#B0FC38]" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-bold">{profile?.balance?.toLocaleString() || 0} ETB</span>
-            <Button
-              onClick={() => setShowDeposit(true)}
-              className="bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-[#1f2a1f] font-semibold px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm hover:shadow-lg hover:shadow-[#7acc00]/20 transition-all active:scale-95"
-            >
-              Deposit
-            </Button>
-          </div>
-        </div>
-
-        {/* VIP Cards Carousel - Responsive with smaller cards */}
-        <div className="mb-8 sm:mb-12">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="font-bold text-sm sm:text-base text-[#2d3a2d] flex items-center gap-1 sm:gap-2">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#7acc00]" />
-              Featured VIP Packages
-            </h2>
-            <div className="text-xs sm:text-sm text-[#6b7b6b]">
-              {currentCardIndex + 1} / {carouselLevels.length}
-            </div>
-          </div>
-
-          {loadingLevels ? (
-            <div className="flex justify-center py-8 sm:py-12">
-              <Spinner />
-            </div>
-          ) : carouselLevels.length > 0 ? (
-            <div className="relative flex items-center justify-center">
-              {/* Left Arrow - responsive positioning */}
-              {carouselLevels.length > 1 && (
-                <button
-                  onClick={goToPrevious}
-                  className="absolute left-0 sm:-left-4 z-30 p-1.5 sm:p-2 rounded-full bg-white shadow-lg hover:shadow-xl hover:scale-110 transition-all border border-[#e2e8e2] flex items-center justify-center"
-                  style={{ height: '40px', width: '40px' }}
-                  aria-label="Previous"
-                >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#7acc00]" />
-                </button>
-              )}
-
-              {/* Card Container - centered with responsive width */}
-              <div className="w-full max-w-[300px] sm:max-w-[320px] md:max-w-[350px] mx-8 sm:mx-12">
-                <VipCard 
-                  level={carouselLevels[currentCardIndex]} 
-                  onInvest={openPurchaseModal}
-                />
-              </div>
-
-              {/* Right Arrow - responsive positioning */}
-              {carouselLevels.length > 1 && (
-                <button
-                  onClick={goToNext}
-                  className="absolute right-0 sm:-right-4 z-30 p-1.5 sm:p-2 rounded-full bg-white shadow-lg hover:shadow-xl hover:scale-110 transition-all border border-[#e2e8e2] flex items-center justify-center"
-                  style={{ height: '40px', width: '40px' }}
-                  aria-label="Next"
-                >
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-[#7acc00]" />
-                </button>
-              )}
-
-              {/* Dots indicator */}
-              <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-1.5 sm:gap-2">
-                {carouselLevels.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setCurrentCardIndex(index);
-                      resetAutoSlide();
-                    }}
-                    className={`h-1.5 sm:h-2 rounded-full transition-all ${
-                      index === currentCardIndex 
-                        ? 'w-4 sm:w-6 bg-[#7acc00]' 
-                        : 'w-1.5 sm:w-2 bg-gray-300 hover:bg-[#7acc00]/50'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 sm:py-12 bg-white rounded-xl border border-[#e2e8e2]">
-              <Package className="w-8 h-8 sm:w-12 sm:h-12 text-[#6b7b6b] mx-auto mb-2" />
-              <p className="text-sm sm:text-base text-[#2d3a2d] font-medium">No VIP packages available</p>
-            </div>
-          )}
-        </div>
-
-        {/* Customer Service Card - responsive */}
-        <div className="relative mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-[#e2e8e2] shadow-sm overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-[#7acc00]/5 to-[#B0FC38]/5 rounded-full blur-2xl" />
-          <div className="relative flex items-center gap-3 sm:gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#7acc00] to-[#B0FC38] rounded-full blur-md opacity-30" />
-              <img src={customerServiceImg} alt="Customer Service" className="relative w-12 h-12 sm:w-16 sm:h-16 object-contain" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[#7acc00]" />
-                <h3 className="font-bold text-xs sm:text-sm text-[#2d3a2d]">Ready to start earning?</h3>
-              </div>
-              <p className="text-xs text-[#6b7b6b] mb-2 sm:mb-3">Watch our quick guide</p>
-              <button
-                onClick={() => setShowHowToEarn(true)}
-                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-semibold transition-all hover:shadow-lg active:scale-95 bg-gradient-to-r from-[#7acc00] to-[#B0FC38]"
+      {/* Main container - single scrollable area */}
+      <div className="relative w-full min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          {/* Header */}
+          <header className="sticky top-0 z-10 bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] pt-2 pb-2 mb-4 backdrop-blur-sm bg-opacity-90 w-full rounded-lg">
+            <div className="flex items-center gap-2 sm:gap-4 w-full">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/dashboard')}
+                className="hover:bg-[#7acc00]/10 active:bg-[#7acc00]/20 transition-all flex-shrink-0"
               >
-                <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                How to Earn
-              </button>
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d3a2d]" />
+              </Button>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-[#2d3a2d] to-[#4a5a4a] bg-clip-text text-transparent truncate">
+                  {t('Investment Products')}
+                </h1>
+                <p className="text-xs sm:text-sm text-[#6b7b6b] truncate">Choose your earning path</p>
+              </div>
+            </div>
+          </header>
+
+          {/* Customer Service Card */}
+          <div className="relative mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-[#e2e8e2] shadow-sm overflow-hidden w-full">
+            <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-[#7acc00]/5 to-[#B0FC38]/5 rounded-full blur-2xl" />
+            <div className="relative flex items-center gap-3 sm:gap-4 w-full">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#7acc00] to-[#B0FC38] rounded-full blur-md opacity-30" />
+                <img src={customerServiceImg} alt="Customer Service" className="relative w-12 h-12 sm:w-16 sm:h-16 object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[#7acc00] flex-shrink-0" />
+                  <h3 className="font-bold text-xs sm:text-sm text-[#2d3a2d] truncate">Ready to start earning?</h3>
+                </div>
+                <p className="text-xs text-[#6b7b6b] mb-2 sm:mb-3 truncate">Watch our quick guide</p>
+                <button
+                  onClick={() => setShowHowToEarn(true)}
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-semibold transition-all hover:shadow-lg active:scale-95 bg-gradient-to-r from-[#7acc00] to-[#B0FC38] whitespace-nowrap"
+                >
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span>How to Earn</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Series Tabs - responsive */}
-        <div className="mb-4 sm:mb-6">
-          <SeriesTabs activeSeries={activeSeries} onSeriesChange={setActiveSeries} />
-        </div>
-
-        {/* Products Grid - responsive grid layout for desktop */}
-        {loadingLevels ? (
-          <div className="flex justify-center py-8 sm:py-12">
-            <Spinner size="lg" />
+          {/* Series Tabs */}
+          <div className="mb-6 w-full">
+            <SeriesTabs activeSeries={activeSeries} onSeriesChange={setActiveSeries} />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-            {vipLevels.filter(level => level.series === activeSeries).length > 0 ? (
-              vipLevels
-                .filter(level => level.series === activeSeries)
-                .map((level) => (
-                  <SeriesProductCard
-                    key={level.id}
-                    id={level.id}
-                    name={level.name}
-                    price={level.price}
-                    dailyIncome={level.daily_income}
-                    cycleDays={level.cycle_days}
-                    imageUrl={level.image_url}
-                    onAddToCart={() => openPurchaseModal(level)}
-                  />
-                ))
-            ) : (
-              <div className="col-span-full text-center py-8 sm:py-12 bg-white rounded-xl sm:rounded-2xl border border-[#e2e8e2]">
-                <Package className="w-8 h-8 sm:w-12 sm:h-12 text-[#6b7b6b] mx-auto mb-2 sm:mb-3" />
-                <p className="text-sm sm:text-base text-[#2d3a2d] font-medium">No products available</p>
-                <p className="text-xs sm:text-sm text-[#6b7b6b] mt-1">Check back later for new opportunities</p>
+
+          {/* Content based on active tab - all with 2x2 grid on mobile */}
+          <div className="w-full">
+            {activeSeries === 'P' && (
+              <PSeriesProducts 
+                levels={pSeriesLevels} 
+                onInvest={openPurchaseModal}
+                loading={loadingLevels}
+              />
+            )}
+
+            {activeSeries === 'B' && (
+              <BSeriesProducts 
+                levels={bSeriesLevels} 
+                onInvest={openPurchaseModal}
+                loading={loadingLevels}
+              />
+            )}
+
+            {activeSeries === 'VIP' && (
+              <VIPMusicPackages onSelect={openMusicPackageModal} />
+            )}
+
+            {activeSeries === 'M' && (
+              <div className="w-full">
+                <MicroSavings />
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       <BottomNavigation />
 
-      {/* Rest of the modals remain the same */}
-      {/* Purchase Confirmation Modal */}
+      {/* Purchase Confirmation Modal for Investment Products - With Gold Button */}
       {showPurchaseModal && selectedLevel && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
@@ -528,26 +710,119 @@ const Earn = () => {
                 >
                   Cancel
                 </Button>
-                <Button
+                <GoldButton
                   onClick={handleAddToCart}
                   disabled={purchasing || profile?.balance < selectedLevel.price}
-                  className="flex-1 text-xs sm:text-sm bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-[#1f2a1f] font-semibold hover:shadow-lg hover:shadow-[#7acc00]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  loading={purchasing}
                 >
-                  {purchasing ? (
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <Spinner size="sm" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    'Confirm Purchase'
-                  )}
-                </Button>
+                  Confirm Purchase
+                </GoldButton>
               </div>
 
               {profile?.balance < selectedLevel.price && (
                 <Button
                   onClick={() => {
                     setShowPurchaseModal(false);
+                    setShowDeposit(true);
+                  }}
+                  className="w-full mt-2 sm:mt-3 text-xs sm:text-sm bg-[#f1f5f1] text-[#2d3a2d] border border-[#e2e8e2] hover:bg-[#e2e8e2]"
+                >
+                  Deposit Now
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Purchase Confirmation Modal for Music Packages - With Gold Button */}
+      {showMusicModal && selectedMusicPackage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => !purchasing && setShowMusicModal(false)}
+        >
+          <div 
+            className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-20 sm:h-24 bg-gradient-to-r from-[#7acc00] to-[#B0FC38] px-4 sm:px-6 pt-4 sm:pt-6">
+              <div className="absolute -bottom-6 sm:-bottom-8 left-4 sm:left-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white shadow-lg p-1 sm:p-2 flex items-center justify-center">
+                  <img src={selectedMusicPackage.image} alt={selectedMusicPackage.name} className="w-8 h-8 sm:w-12 sm:h-12 object-contain" />
+                </div>
+              </div>
+              <button 
+                onClick={() => !purchasing && setShowMusicModal(false)}
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                disabled={purchasing}
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </button>
+            </div>
+
+            <div className="pt-8 sm:pt-10 px-4 sm:px-6 pb-4 sm:pb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-[#2d3a2d] mb-1">{selectedMusicPackage.name}</h2>
+              <p className="text-xs sm:text-sm text-[#6b7b6b] mb-4 sm:mb-6">Unlock this music package</p>
+
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
+                  <span className="text-xs sm:text-sm text-[#6b7b6b]">Price</span>
+                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.price.toLocaleString()} ETB</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
+                  <span className="text-xs sm:text-sm text-[#6b7b6b]">Daily Income</span>
+                  <span className="font-bold text-sm sm:text-base text-[#7acc00]">{selectedMusicPackage.dailyIncome} ETB</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
+                  <span className="text-xs sm:text-sm text-[#6b7b6b]">Cycle Days</span>
+                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.cycleDays} Days</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-xs sm:text-sm text-[#6b7b6b]">Total Return</span>
+                  <span className="font-bold text-base sm:text-lg text-[#2d3a2d]">{selectedMusicPackage.totalReturn.toLocaleString()} ETB</span>
+                </div>
+              </div>
+
+              <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl mb-4 sm:mb-6 ${profile?.balance >= selectedMusicPackage.price ? 'bg-[#7acc00]/10' : 'bg-red-50'}`}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {profile?.balance >= selectedMusicPackage.price ? (
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#7acc00]" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-[#2d3a2d]">
+                      {profile?.balance >= selectedMusicPackage.price ? 'Sufficient Balance' : 'Insufficient Balance'}
+                    </p>
+                    <p className="text-xs text-[#6b7b6b]">
+                      Your balance: {profile?.balance?.toLocaleString()} ETB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 sm:gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => !purchasing && setShowMusicModal(false)}
+                  className="flex-1 text-xs sm:text-sm border-[#e2e8e2] text-[#6b7b6b] hover:bg-[#f1f5f1]"
+                  disabled={purchasing}
+                >
+                  Cancel
+                </Button>
+                <GoldButton
+                  onClick={handleMusicPurchase}
+                  disabled={purchasing || profile?.balance < selectedMusicPackage.price}
+                  loading={purchasing}
+                >
+                  Confirm & Unlock
+                </GoldButton>
+              </div>
+
+              {profile?.balance < selectedMusicPackage.price && (
+                <Button
+                  onClick={() => {
+                    setShowMusicModal(false);
                     setShowDeposit(true);
                   }}
                   className="w-full mt-2 sm:mt-3 text-xs sm:text-sm bg-[#f1f5f1] text-[#2d3a2d] border border-[#e2e8e2] hover:bg-[#e2e8e2]"
@@ -637,5 +912,43 @@ const Earn = () => {
     </div>
   );
 };
+
+// Add hide scrollbar style
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Ensure no double scrollbars */
+    html, body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #root {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Fix for fixed positioning */
+    .fixed {
+      max-width: 100vw;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default Earn;

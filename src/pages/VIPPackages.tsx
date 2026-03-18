@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
@@ -85,7 +86,7 @@ const UpgradeNotification = ({ isOpen, onClose, packageName }: { isOpen: boolean
 };
 
 const VIPPackages = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refreshProfile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] = useState<VipPackage | null>(null);
@@ -95,6 +96,7 @@ const VIPPackages = () => {
   const [upgradedPackage, setUpgradedPackage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showDeposit, setShowDeposit] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [togglingLogo, setTogglingLogo] = useState<number | null>(null);
 
   // Logo toggle animation effect
@@ -331,23 +333,80 @@ const VIPPackages = () => {
       return;
     }
     
-    if (profile.balance < pkg.price) {
-      setSelectedPackage(pkg);
-      setShowConfirmModal(true);
-    } else {
-      setSelectedPackage(pkg);
-      setShowConfirmModal(true);
-    }
+    setSelectedPackage(pkg);
+    setShowConfirmModal(true);
   };
 
-  const handleConfirmPurchase = () => {
-    if (!selectedPackage) return;
-    
-    setShowConfirmModal(false);
-    setUpgradedPackage(selectedPackage.name);
-    setShowUpgradeNotif(true);
-    setSuccessMessage(`Successfully unlocked ${selectedPackage.name}! Start earning now.`);
-    setShowSuccess(true);
+  const handleConfirmPurchase = async () => {
+    if (!selectedPackage || !user || !profile || purchasing) return;
+
+    if (profile.balance < selectedPackage.price) {
+      setShowConfirmModal(false);
+      setSuccessMessage('Insufficient balance. Please deposit first.');
+      setShowSuccess(true);
+      setShowDeposit(true);
+      return;
+    }
+
+    setPurchasing(true);
+
+    try {
+      // 1. Deduct balance from user's profile
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ 
+          balance: profile.balance - selectedPackage.price,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (balanceError) throw balanceError;
+
+      // 2. Create transaction record
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          amount: selectedPackage.price,
+          type: 'music_package',
+          status: 'completed',
+          description: `Purchased ${selectedPackage.name} Music Package`,
+          music_package_id: selectedPackage.id,
+          created_at: new Date().toISOString()
+        });
+
+      if (transactionError) throw transactionError;
+
+      // 3. Create initial listening progress in localStorage
+      const today = new Date().toDateString();
+      const progressKey = `progress_${user.id}_${selectedPackage.id}_${today}`;
+      const initialProgress = {
+        packageId: selectedPackage.id,
+        packageName: selectedPackage.name,
+        listenedMinutes: 0,
+        dailyLimit: selectedPackage.dailyLimit,
+        earnedToday: 0,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(progressKey, JSON.stringify(initialProgress));
+
+      // 4. Update UI
+      setShowConfirmModal(false);
+      setUpgradedPackage(selectedPackage.name);
+      setShowUpgradeNotif(true);
+      setSuccessMessage(`Successfully unlocked ${selectedPackage.name}! Start listening to earn.`);
+      setShowSuccess(true);
+      
+      // 5. Refresh profile to get updated balance
+      await refreshProfile();
+
+    } catch (error) {
+      console.error('Purchase failed:', error);
+      setSuccessMessage('Purchase failed. Please try again.');
+      setShowSuccess(true);
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   if (loading || !profile) {
@@ -369,7 +428,7 @@ const VIPPackages = () => {
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <h1 className="text-xl font-bold text-gray-800">VIP Packages</h1>
+          <h1 className="text-xl font-bold text-gray-800">VIP Music Packages</h1>
         </div>
       </div>
 
@@ -482,13 +541,18 @@ const VIPPackages = () => {
                         <span className="text-[10px] text-[#7acc00] font-medium">+{pkg.features.length - 1} more</span>
                       </div>
 
-                      {/* Unlock Button - Always says Unlock with golden color */}
+                      {/* Unlock Button - Shows "Unlock Package" or "Insufficient Balance" based on affordability */}
                       <button
                         onClick={() => handlePackageSelect(pkg)}
-                        className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] hover:shadow-md hover:scale-[1.02] active:scale-95"
+                        disabled={!isAffordable}
+                        className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                          isAffordable
+                            ? 'bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] hover:shadow-md hover:scale-[1.02] active:scale-95'
+                            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        }`}
                       >
                         <Unlock className="w-4 h-4" />
-                        Unlock Package
+                        {isAffordable ? 'Unlock Package' : 'Insufficient Balance'}
                       </button>
                     </div>
                   </div>
@@ -501,7 +565,7 @@ const VIPPackages = () => {
 
       <BottomNavigation />
 
-      {/* Upgrade Notification Popup - Center screen */}
+      {/* Upgrade Notification Popup */}
       <UpgradeNotification 
         isOpen={showUpgradeNotif} 
         onClose={() => setShowUpgradeNotif(false)}
@@ -510,12 +574,18 @@ const VIPPackages = () => {
 
       {/* Purchase Confirmation Modal */}
       {showConfirmModal && selectedPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowConfirmModal(false)}>
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => !purchasing && setShowConfirmModal(false)}
+        >
+          <div 
+            className="w-full max-w-md bg-white rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="bg-gradient-to-r from-[#FFD700] to-[#FDB931] p-5 rounded-t-2xl relative overflow-hidden">
               <div className="absolute inset-0 bg-black/10" />
               <div className="relative flex items-center gap-3">
-                <div className={`w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center animate-pulse`}>
+                <div className={`w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center ${purchasing ? 'animate-pulse' : ''}`}>
                   <img 
                     src={selectedPackage.image} 
                     alt={selectedPackage.name}
@@ -528,8 +598,9 @@ const VIPPackages = () => {
                 </div>
               </div>
               <button
-                onClick={() => setShowConfirmModal(false)}
+                onClick={() => !purchasing && setShowConfirmModal(false)}
                 className="absolute top-3 right-3 p-1 bg-white/20 rounded-full hover:bg-white/30"
+                disabled={purchasing}
               >
                 <X className="w-4 h-4 text-[#1a2a1a]" />
               </button>
@@ -551,12 +622,12 @@ const VIPPackages = () => {
                     {profile.balance.toLocaleString()} ETB
                   </span>
                 </div>
-                {profile.balance < selectedPackage.price && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Need</span>
-                    <span className="font-semibold text-red-500">{(selectedPackage.price - profile.balance).toLocaleString()} ETB</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">After Purchase</span>
+                  <span className={`font-semibold ${profile.balance >= selectedPackage.price ? 'text-[#7acc00]' : 'text-red-500'}`}>
+                    {profile.balance >= selectedPackage.price ? (profile.balance - selectedPackage.price).toLocaleString() : profile.balance.toLocaleString()} ETB
+                  </span>
+                </div>
               </div>
 
               {profile.balance < selectedPackage.price ? (
@@ -580,10 +651,20 @@ const VIPPackages = () => {
               ) : (
                 <button
                   onClick={handleConfirmPurchase}
-                  className="w-full py-3 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] font-semibold rounded-xl hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"
+                  disabled={purchasing}
+                  className="w-full py-3 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] font-semibold rounded-xl hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Unlock className="w-4 h-4" />
-                  Confirm & Unlock
+                  {purchasing ? (
+                    <div className="flex items-center gap-2">
+                      <Spinner size="sm" />
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Unlock className="w-4 h-4" />
+                      Confirm & Unlock
+                    </>
+                  )}
                 </button>
               )}
             </div>
@@ -597,7 +678,7 @@ const VIPPackages = () => {
         onClose={() => setShowDeposit(false)}
         onDepositSubmitted={() => {
           setShowDeposit(false);
-          setSuccessMessage('Deposit submitted successfully!');
+          setSuccessMessage('Deposit submitted! Awaiting admin approval.');
           setShowSuccess(true);
         }}
       />
@@ -612,16 +693,18 @@ const VIPPackages = () => {
 };
 
 // Add custom animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes bounce-once {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  .animate-bounce-once {
-    animation: bounce-once 0.5s ease-in-out;
-  }
-`;
-document.head.appendChild(style);
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes bounce-once {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .animate-bounce-once {
+      animation: bounce-once 0.5s ease-in-out;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default VIPPackages;

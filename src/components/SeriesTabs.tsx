@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface SeriesTabsProps {
-  activeSeries: 'P' | 'B' | 'M';
-  onSeriesChange: (series: 'P' | 'B' | 'M') => void;
+  activeSeries: 'P' | 'B' | 'M' | 'VIP';
+  onSeriesChange: (series: 'P' | 'B' | 'M' | 'VIP') => void;
 }
 
 const SeriesTabs: React.FC<SeriesTabsProps> = ({ activeSeries, onSeriesChange }) => {
@@ -10,6 +10,7 @@ const SeriesTabs: React.FC<SeriesTabsProps> = ({ activeSeries, onSeriesChange })
     { key: 'P', label: 'P Series' },
     { key: 'B', label: 'B Series' },
     { key: 'M', label: 'Microsavings' },
+    { key: 'VIP', label: 'VIP Packages' },
   ];
 
   return (
@@ -17,7 +18,7 @@ const SeriesTabs: React.FC<SeriesTabsProps> = ({ activeSeries, onSeriesChange })
       {tabs.map((tab) => (
         <button
           key={tab.key}
-          onClick={() => onSeriesChange(tab.key as 'P' | 'B' | 'M')}
+          onClick={() => onSeriesChange(tab.key as 'P' | 'B' | 'M' | 'VIP')}
           className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
             activeSeries === tab.key
               ? 'bg-white text-[#2d3a2d] shadow-sm'

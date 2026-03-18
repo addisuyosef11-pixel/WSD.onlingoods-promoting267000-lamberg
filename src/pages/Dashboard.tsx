@@ -23,7 +23,8 @@ import {
   ChevronLeft, ChevronRight, AlertTriangle, Award, TrendingUp, Clock,
   Menu, User, LogOut, Settings, CreditCard, History, Phone, Mail,
   Wallet, Download, Gift, HelpCircle, ChevronDown, ChevronUp, Save,
-  ChevronLeftCircle, ChevronRightCircle, StopCircle, PlayCircle, Flame
+  ChevronLeftCircle, ChevronRightCircle, StopCircle, PlayCircle, Flame, Repeat,
+  Gift as GiftIcon
 } from 'lucide-react';
 
 // Add VipMusicPackage interface
@@ -250,7 +251,7 @@ const MaxEarningNotification = ({ isOpen, onClose, packageName, dailyEarning }: 
   );
 };
 
-// Navigation Menu Component
+// Navigation Menu Component - Updated with new balance card and gift box inside
 const NavigationMenu = ({ 
   user, 
   profile, 
@@ -260,6 +261,7 @@ const NavigationMenu = ({
   canEarn,
   onDeposit,
   onWithdraw,
+  onGift,
   userDetails
 }: { 
   user: any; 
@@ -270,6 +272,7 @@ const NavigationMenu = ({
   canEarn: boolean;
   onDeposit: () => void;
   onWithdraw: () => void;
+  onGift: () => void;
   userDetails: UserDetails | null;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -301,6 +304,7 @@ const NavigationMenu = ({
 
       {isOpen && (
         <div className="absolute top-14 left-0 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 animate-slideDown">
+          {/* User Profile Section */}
           <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-[#f0f9e8] to-white">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-[#7acc00] to-[#B0FC38] rounded-full flex items-center justify-center">
@@ -322,73 +326,137 @@ const NavigationMenu = ({
             </div>
           </div>
 
+          {/* Redesigned Balance Card - Green with transparent wallet icon */}
           <div className="p-4 border-b border-gray-100">
-            <div className="relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #7acc00, #B0FC38)' }}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a3a1a] to-[#2d5a2d] shadow-xl">
+              {/* Decorative Elements - Subtle patterns */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
               
-              <div className="relative z-10 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <img src={walletImage} alt="Wallet" className="w-6 h-6 object-contain" />
-                  <span className="text-sm font-bold text-white">My Wallet</span>
+              {/* Card Content */}
+              <div className="relative z-10 p-5">
+                {/* Header with Wallet Icon - No white background */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center">
+                    <img 
+                      src={walletImage} 
+                      alt="Wallet" 
+                      className="w-8 h-8 object-contain drop-shadow-lg" 
+                      style={{ filter: 'brightness(0) invert(1)' }} // Makes icon white on green background
+                    />
+                  </div>
+                  <span className="text-base font-bold text-white tracking-wide">My Wallet</span>
                 </div>
 
-                <div className="mb-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-white/80">Main Balance</span>
-                    <button onClick={() => setShowBalance(!showBalance)} className="p-0.5 hover:bg-white/10 rounded">
-                      {showBalance ? <Eye className="w-3 h-3 text-white" /> : <EyeOff className="w-3 h-3 text-white/60" />}
+                {/* Main Balance */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-white/70 font-medium">Main Balance</span>
+                    <button 
+                      onClick={() => setShowBalance(!showBalance)} 
+                      className="p-1 hover:bg-white/10 rounded transition-colors"
+                    >
+                      {showBalance ? 
+                        <Eye className="w-3.5 h-3.5 text-white/80" /> : 
+                        <EyeOff className="w-3.5 h-3.5 text-white/60" />
+                      }
                     </button>
                   </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-bold text-white">{showBalance ? profile?.balance?.toLocaleString() || 0 : '****'}</span>
-                    <span className="text-xs text-white/80">ETB</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-white tracking-tight">
+                      {showBalance ? profile?.balance?.toLocaleString() || '0' : '••••'}
+                    </span>
+                    <span className="text-xs text-white/60 font-medium">ETB</span>
                   </div>
                 </div>
 
+                {/* Divider */}
+                <div className="border-t border-white/20 my-3" />
+
+                {/* Withdrawable Balance */}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-white/80">Withdrawable</span>
+                    <span className="text-xs text-white/70 font-medium">Withdrawable Balance</span>
                   </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-lg font-bold text-white">{showBalance ? profile?.withdrawable_balance?.toLocaleString() || 0 : '****'}</span>
-                    <span className="text-xs text-white/80">ETB</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-white tracking-tight">
+                      {showBalance ? profile?.withdrawable_balance?.toLocaleString() || '0' : '••••'}
+                    </span>
+                    <span className="text-xs text-white/60 font-medium">ETB</span>
                   </div>
+                </div>
+
+                {/* Quick Stats Badge */}
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="bg-white/10 px-2 py-1 rounded flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-[#B0FC38]" />
+                    <span className="text-[10px] text-white/90">Daily: {dailyIncome.toLocaleString()} ETB</span>
+                  </div>
+                  {canEarn && (
+                    <div className="bg-[#B0FC38]/20 px-2 py-1 rounded">
+                      <span className="text-[10px] text-[#B0FC38] font-semibold">Active</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Quick Action Buttons - Including Gift Box */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center justify-around">
-              <button onClick={() => { onDeposit(); setIsOpen(false); }} className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] rounded-xl flex items-center justify-center">
+              <button 
+                onClick={() => { onDeposit(); setIsOpen(false); }} 
+                className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-all group"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                   <img src={depositImage} alt="Deposit" className="w-6 h-6 object-contain" />
                 </div>
                 <span className="text-xs font-medium text-gray-700">Deposit</span>
               </button>
-              <button onClick={() => { onWithdraw(); setIsOpen(false); }} className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#fff8e1] to-[#ffecb3] rounded-xl flex items-center justify-center">
+              
+              <button 
+                onClick={() => { onWithdraw(); setIsOpen(false); }} 
+                className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-all group"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-[#fff8e1] to-[#ffecb3] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                   <img src={withdrawImage} alt="Withdraw" className="w-6 h-6 object-contain" />
                 </div>
                 <span className="text-xs font-medium text-gray-700">Withdraw</span>
               </button>
-              <button onClick={() => { window.location.href = '/gift'; setIsOpen(false); }} className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#fff3e0] to-[#ffe0b2] rounded-xl flex items-center justify-center">
-                  <Gift className="w-6 h-6 text-[#ff9800]" />
+              
+              {/* Gift Box Button Inside Navigation */}
+              <button 
+                onClick={() => { onGift(); setIsOpen(false); }} 
+                className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-all group relative"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-[#fff3e0] to-[#ffe0b2] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform relative">
+                  <GiftIcon className="w-6 h-6 text-[#ff9800]" />
+                  {/* Notification dot */}
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                    1
+                  </span>
                 </div>
                 <span className="text-xs font-medium text-gray-700">Gift</span>
               </button>
             </div>
           </div>
 
+          {/* Quick Stats Toggle */}
           <div className="p-2 border-b border-gray-100">
-            <button onClick={() => setShowQuickStats(!showQuickStats)} className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+            <button 
+              onClick={() => setShowQuickStats(!showQuickStats)} 
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-[#7acc00]" />
                 <span className="text-sm font-medium text-gray-700">Quick Stats</span>
               </div>
-              {showQuickStats ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+              {showQuickStats ? 
+                <ChevronUp className="w-4 h-4 text-gray-500" /> : 
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              }
             </button>
 
             {showQuickStats && (
@@ -423,6 +491,7 @@ const NavigationMenu = ({
             )}
           </div>
 
+          {/* Menu Items */}
           <div className="p-2">
             <button onClick={() => { window.location.href = '/profile'; setIsOpen(false); }} className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
               <User className="w-4 h-4 text-gray-600" />
@@ -442,6 +511,7 @@ const NavigationMenu = ({
             </button>
           </div>
 
+          {/* Logout Button */}
           <div className="p-2 border-t border-gray-100">
             <button onClick={() => { onLogout(); setIsOpen(false); }} className="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-red-600">
               <LogOut className="w-4 h-4" />
@@ -454,19 +524,9 @@ const NavigationMenu = ({
   );
 };
 
-// Gift Code Button
+// Gift Code Button - Now just a wrapper that opens the modal
 const GiftCodeButton = ({ onClick }: { onClick: () => void }) => {
-  const [isVisible, setIsVisible] = useState(true);
-  if (!isVisible) return null;
-
-  return (
-    <button onClick={onClick} className="fixed right-4 top-24 z-50">
-      <img src={giftCodeImage} alt="Gift" className="w-16 h-16 object-contain hover:scale-110 transition-transform" />
-      <button onClick={(e) => { e.stopPropagation(); setIsVisible(false); }} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600">
-        ×
-      </button>
-    </button>
-  );
+  return null; // Removed floating button since gift is now in navigation
 };
 
 // VIP Benefits Card
@@ -730,6 +790,66 @@ const HotMusicBanner = ({ tracks, onPlayTrack }: { tracks: MusicTrack[]; onPlayT
   );
 };
 
+// Playlist Controls Component
+const PlaylistControls = ({ 
+  isActive, 
+  trackCount, 
+  currentIndex,
+  onStopPlaylist,
+  onNextTrack,
+  onPrevTrack
+}: { 
+  isActive: boolean; 
+  trackCount: number; 
+  currentIndex: number;
+  onStopPlaylist: () => void;
+  onNextTrack: () => void;
+  onPrevTrack: () => void;
+}) => {
+  if (!isActive) return null;
+  
+  return (
+    <div className="bg-[#7acc00]/10 p-3 mb-3 flex items-center justify-between border border-[#7acc00]/30">
+      <div className="flex items-center gap-2">
+        <Radio className="w-4 h-4 text-[#7acc00] animate-pulse" />
+        <div>
+          <span className="text-xs font-semibold text-gray-700">
+            Playlist Mode
+          </span>
+          <span className="text-xs text-gray-500 ml-2">
+            {currentIndex + 1}/{trackCount}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onPrevTrack}
+          className="p-1.5 bg-white rounded hover:bg-gray-100 transition-colors"
+          title="Previous track"
+          disabled={currentIndex === 0}
+        >
+          <ChevronLeft className={`w-4 h-4 ${currentIndex === 0 ? 'text-gray-300' : 'text-[#7acc00]'}`} />
+        </button>
+        <button
+          onClick={onNextTrack}
+          className="p-1.5 bg-white rounded hover:bg-gray-100 transition-colors"
+          title="Next track"
+          disabled={currentIndex === trackCount - 1}
+        >
+          <ChevronRight className={`w-4 h-4 ${currentIndex === trackCount - 1 ? 'text-gray-300' : 'text-[#7acc00]'}`} />
+        </button>
+        <button
+          onClick={onStopPlaylist}
+          className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+          title="Stop playlist"
+        >
+          <StopCircle className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Music Section Component
 const MusicSection = ({ 
   onEarningsUpdate,
@@ -770,6 +890,12 @@ const MusicSection = ({
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
   const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
+  
+  // New state for continuous playback
+  const [playlistMode, setPlaylistMode] = useState(false);
+  const [currentPlaylist, setCurrentPlaylist] = useState<MusicTrack[]>([]);
+  const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState(0);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
   const fiveMinuteTriggered = useRef(false);
   const maxEarningTriggered = useRef(false);
@@ -868,11 +994,21 @@ const MusicSection = ({
 
   const confirmPlay = () => {
     if (!pendingTrack) return;
+    
     setCurrentTrack(pendingTrack);
     setIsPlaying(true);
     setProgress(0);
     setListeningTimer(0);
     fiveMinuteTriggered.current = false;
+    
+    // If in playlist mode, find the index of this track
+    if (playlistMode && currentPlaylist.length > 0) {
+      const index = currentPlaylist.findIndex(t => t.id === pendingTrack.id);
+      if (index !== -1) {
+        setCurrentPlaylistIndex(index);
+      }
+    }
+    
     if (audioRef.current) {
       audioRef.current.src = pendingTrack.audioUrl;
       audioRef.current.play().catch(e => console.log('Playback failed:', e));
@@ -931,20 +1067,121 @@ const MusicSection = ({
     }
   };
 
+  // Updated handleTrackEnd for continuous playback
   const handleTrackEnd = () => {
     setIsPlaying(false);
     setProgress(0);
+    
+    // Auto-play next track if in playlist mode
+    if (playlistMode && currentPlaylist.length > 0 && currentTrack && !('audioBlob' in currentTrack)) {
+      const currentIndex = currentPlaylist.findIndex(t => t.id === currentTrack.id);
+      
+      if (currentIndex !== -1 && currentIndex < currentPlaylist.length - 1) {
+        // Play next track
+        const nextTrack = currentPlaylist[currentIndex + 1];
+        setCurrentPlaylistIndex(currentIndex + 1);
+        setTimeout(() => {
+          setCurrentTrack(nextTrack);
+          setIsPlaying(true);
+          setProgress(0);
+          if (audioRef.current) {
+            audioRef.current.src = nextTrack.audioUrl;
+            audioRef.current.play().catch(e => console.log('Playback failed:', e));
+          }
+        }, 1000); // 1 second gap between tracks
+      } else if (currentIndex === currentPlaylist.length - 1 && currentPlaylist.length > 0) {
+        // Loop back to first track
+        const firstTrack = currentPlaylist[0];
+        setCurrentPlaylistIndex(0);
+        setTimeout(() => {
+          setCurrentTrack(firstTrack);
+          setIsPlaying(true);
+          setProgress(0);
+          if (audioRef.current) {
+            audioRef.current.src = firstTrack.audioUrl;
+            audioRef.current.play().catch(e => console.log('Playback failed:', e));
+          }
+        }, 1000);
+        // Show notification that playlist is looping
+        setDownloadSuccess('🔄 Playlist looping - Enjoy the music!');
+        setTimeout(() => setDownloadSuccess(null), 2000);
+      }
+    }
+  };
+
+  // Play all tracks function
+  const playAllTracks = () => {
+    const playlist = tracks.length > 0 ? tracks : trendingTracks;
+    if (playlist.length === 0) {
+      setDownloadError('No tracks available to play');
+      setTimeout(() => setDownloadError(null), 2000);
+      return;
+    }
+    
+    setPlaylistMode(true);
+    setCurrentPlaylist(playlist);
+    setCurrentPlaylistIndex(0);
+    
+    // Start with first track
+    const firstTrack = playlist[0];
+    setPendingTrack(firstTrack);
+    setShowConfirmModal(true);
+    
+    // Show success message
+    setDownloadSuccess(`🎵 Playing ${playlist.length} tracks continuously`);
+    setTimeout(() => setDownloadSuccess(null), 2000);
   };
 
   const skipTrack = () => {
-    const list = tracks.length > 0 ? tracks : trendingTracks;
-    if (!currentTrack || list.length === 0 || 'audioBlob' in currentTrack) return;
-    const idx = list.findIndex(t => t.id === (currentTrack as MusicTrack).id);
-    const next = list[(idx + 1) % list.length];
-    playTrack(next);
+    if (!playlistMode || !currentPlaylist.length || !currentTrack || 'audioBlob' in currentTrack) return;
+    
+    const currentIndex = currentPlaylist.findIndex(t => t.id === currentTrack.id);
+    if (currentIndex !== -1 && currentIndex < currentPlaylist.length - 1) {
+      const nextTrack = currentPlaylist[currentIndex + 1];
+      setCurrentPlaylistIndex(currentIndex + 1);
+      setCurrentTrack(nextTrack);
+      setIsPlaying(true);
+      setProgress(0);
+      if (audioRef.current) {
+        audioRef.current.src = nextTrack.audioUrl;
+        audioRef.current.play().catch(e => console.log('Playback failed:', e));
+      }
+    }
   };
 
-  const closeCurrentTrack = () => stopTrack();
+  const previousTrack = () => {
+    if (!playlistMode || !currentPlaylist.length || !currentTrack || 'audioBlob' in currentTrack) return;
+    
+    const currentIndex = currentPlaylist.findIndex(t => t.id === currentTrack.id);
+    if (currentIndex > 0) {
+      const prevTrack = currentPlaylist[currentIndex - 1];
+      setCurrentPlaylistIndex(currentIndex - 1);
+      setCurrentTrack(prevTrack);
+      setIsPlaying(true);
+      setProgress(0);
+      if (audioRef.current) {
+        audioRef.current.src = prevTrack.audioUrl;
+        audioRef.current.play().catch(e => console.log('Playback failed:', e));
+      }
+    }
+  };
+
+  const stopPlaylist = () => {
+    setPlaylistMode(false);
+    setCurrentPlaylist([]);
+    setCurrentPlaylistIndex(0);
+    stopTrack();
+    setDownloadSuccess('⏹️ Playlist stopped');
+    setTimeout(() => setDownloadSuccess(null), 2000);
+  };
+
+  const closeCurrentTrack = () => {
+    if (playlistMode) {
+      stopPlaylist();
+    } else {
+      stopTrack();
+    }
+  };
 
   const downloadTrack = async (track: MusicTrack) => {
     try {
@@ -1107,6 +1344,30 @@ const MusicSection = ({
         </button>
       </form>
 
+      {/* Play All Button */}
+      {displayTracks.length > 0 && !playlistMode && (
+        <button
+          onClick={playAllTracks}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-[#7acc00] text-white font-semibold hover:bg-[#6bb800] transition-colors mb-3"
+          style={{ borderRadius: '0' }}
+        >
+          <Play className="w-4 h-4" />
+          <span>Play All ({displayTracks.length} tracks) Continuously</span>
+        </button>
+      )}
+
+      {/* Playlist Controls */}
+      {playlistMode && currentPlaylist.length > 0 && (
+        <PlaylistControls
+          isActive={playlistMode}
+          trackCount={currentPlaylist.length}
+          currentIndex={currentPlaylistIndex}
+          onStopPlaylist={stopPlaylist}
+          onNextTrack={skipTrack}
+          onPrevTrack={previousTrack}
+        />
+      )}
+
       <div className="relative mb-3">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 lg:hidden">
           <button onClick={() => scrollCategories('left')} className="p-1 bg-white rounded-full shadow-md">
@@ -1182,15 +1443,28 @@ const MusicSection = ({
                   {'audioBlob' in currentTrack ? 'Offline Mode' : (canEarn ? 'Earn 0.05416 ETB/min' : 'Free Listening')}
                 </span>
               </div>
+              {playlistMode && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Repeat className="w-3 h-3 text-[#7acc00]" />
+                  <span className="text-[10px] text-white/40">
+                    {currentPlaylistIndex + 1}/{currentPlaylist.length}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <button onClick={() => setIsPlaying(!isPlaying)} className="w-10 h-10 bg-[#7acc00] flex items-center justify-center shadow-lg hover:scale-105 transition-transform active:scale-95" style={{ borderRadius: '0' }}>
                 {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
               </button>
-              {!('audioBlob' in currentTrack) && (
-                <button onClick={skipTrack} className="p-2 hover:bg-white/10 transition-colors" style={{ borderRadius: '0' }}>
-                  <SkipForward className="w-4 h-4 text-white/70" />
-                </button>
+              {!('audioBlob' in currentTrack) && playlistMode && (
+                <>
+                  <button onClick={previousTrack} className="p-2 hover:bg-white/10 transition-colors" style={{ borderRadius: '0' }}>
+                    <ChevronLeft className="w-4 h-4 text-white/70" />
+                  </button>
+                  <button onClick={skipTrack} className="p-2 hover:bg-white/10 transition-colors" style={{ borderRadius: '0' }}>
+                    <ChevronRight className="w-4 h-4 text-white/70" />
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -1523,6 +1797,7 @@ const Dashboard = () => {
               canEarn={canEarn}
               onDeposit={() => navigate('/deposit')}
               onWithdraw={() => navigate('/withdraw')}
+              onGift={() => setShowGift(true)}
               userDetails={userDetails}
             />
             <h1 className="text-xl font-bold text-gray-800">Music Dashboard</h1>
@@ -1547,9 +1822,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Gift Code Button */}
-      <GiftCodeButton onClick={() => setShowGift(true)} />
-
+      {/* Gift Code Button - Removed floating button, now in navigation */}
+      
       {/* Customer Service Button */}
       <CustomerServiceButton onClick={() => setShowCustomerService(true)} />
 
