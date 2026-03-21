@@ -28,7 +28,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
       {/* TESLA Name and Loading dots - centered over image */}
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px]">
-        <h1 className="text-5xl font-bold text-white mb-6 tracking-wider drop-shadow-lg">TESLA</h1>
+        <h1 className="text-5xl font-bold text-white mb-6 tracking-wider drop-shadow-lg">DSW</h1>
         
         {/* Loading dots - Binance style */}
         <div className="flex space-x-4">
