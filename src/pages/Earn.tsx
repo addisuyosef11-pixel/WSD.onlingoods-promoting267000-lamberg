@@ -14,16 +14,6 @@ import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
 import customerServiceImg from '@/assets/customer-service.png';
 
-// Import package images
-import vip1 from '@/assets/vip_1.png';
-import vip2 from '@/assets/vip_2.png';
-import vip3 from '@/assets/vip_3.png';
-import vip4 from '@/assets/vip_4.png';
-import vip5 from '@/assets/vip_5.png';
-import vip6 from '@/assets/vip_6.png';
-import vip7 from '@/assets/vip_7.png';
-import vip8 from '@/assets/vip_8.png';
-
 interface VipLevel {
   id: number;
   name: string;
@@ -38,24 +28,12 @@ interface VipLevel {
   purchase_limit: number;
 }
 
-interface MusicPackage {
-  id: number;
-  name: string;
-  price: number;
-  dailyIncome: number;
-  cycleDays: number;
-  totalReturn: number;
-  image: string;
-  badge?: string;
-  badgeColor?: string;
-}
-
 // 3D Gold Button Component (reusable)
 const GoldButton = ({ onClick, children, disabled = false, loading = false }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; loading?: boolean }) => (
   <button
     onClick={onClick}
     disabled={disabled || loading}
-    className={`w-full py-3 bg-gradient-to-b from-[#FFD700] to-[#FDB931] rounded-xl text-[#1a2a1a] font-bold text-sm shadow-[0_8px_0_0_#b37b00] hover:shadow-[0_4px_0_0_#b37b00] hover:translate-y-1 active:translate-y-2 active:shadow-[0_2px_0_0_#b37b00] transition-all duration-150 border border-[#FFE55C] disabled:opacity-50 disabled:cursor-not-allowed`}
+    className={`w-full py-2 bg-gradient-to-b from-[#FFD700] to-[#FDB931] rounded-lg text-[#1a2a1a] font-semibold text-xs shadow-[0_4px_0_0_#b37b00] hover:shadow-[0_2px_0_0_#b37b00] hover:translate-y-0.5 active:translate-y-1 active:shadow-[0_1px_0_0_#b37b00] transition-all duration-150 border border-[#FFE55C] disabled:opacity-50 disabled:cursor-not-allowed`}
   >
     {loading ? (
       <div className="flex items-center justify-center gap-2">
@@ -68,78 +46,68 @@ const GoldButton = ({ onClick, children, disabled = false, loading = false }: { 
   </button>
 );
 
-// Music Package Card Component - Vertical display
+// Music Package Card Component - Compact vertical display (half height)
 const MusicPackageCard = ({ 
   pkg, 
   onSelect 
 }: { 
-  pkg: MusicPackage; 
-  onSelect: (pkg: MusicPackage) => void;
+  pkg: any; 
+  onSelect: (pkg: any) => void;
 }) => {
   return (
     <div 
-      className="w-full rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-200 mb-4"
+      className="w-full rounded-xl overflow-hidden shadow-md cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 bg-white border border-gray-200 mb-3"
       onClick={() => onSelect(pkg)}
     >
-      <div className="relative">
-        {/* Badge - positioned on image */}
+      <div className="relative flex items-center p-3">
+        {/* Badge - compact */}
         {pkg.badge && (
           <div className="absolute top-2 left-2 z-10">
-            <div className={`${pkg.badgeColor} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg`}>
+            <div className={`${pkg.badgeColor} text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm`}>
               {pkg.badge}
             </div>
           </div>
         )}
 
-        {/* Image - Full width to edges */}
-        <div className="w-full">
-          <div className="relative w-full h-40 bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+        {/* Image - smaller */}
+        <div className="flex-shrink-0 w-16 h-16 mr-3">
+          <div className="w-full h-full bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
             <img 
               src={pkg.image} 
               alt={pkg.name} 
-              className="w-full h-full object-contain p-4" 
+              className="w-full h-full object-contain p-1" 
             />
           </div>
         </div>
 
-        {/* Content - with padding restored */}
-        <div className="p-5">
-          {/* Title - centered */}
-          <h3 className="text-gray-800 font-bold text-xl text-center mb-2">{pkg.name}</h3>
-
-          {/* Price with green ETB - centered */}
-          <div className="text-center mb-4">
-            <span className="text-3xl font-extrabold text-gray-900">{pkg.price.toLocaleString()}</span>
-            <span className="text-[#7acc00] font-bold text-base ml-1">ETB</span>
-          </div>
-
-          {/* Stats - Simple text boxes in 3 columns */}
-          <div className="grid grid-cols-3 gap-2 mb-5">
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Daily</div>
-              <div className="text-gray-800 font-bold text-base">{pkg.dailyIncome} ETB</div>
-            </div>
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Cycle</div>
-              <div className="text-gray-800 font-bold text-base">{pkg.cycleDays}d</div>
-            </div>
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Total</div>
-              <div className="text-gray-800 font-bold text-base">{pkg.totalReturn.toLocaleString()} ETB</div>
+        {/* Content - compact */}
+        <div className="flex-1 min-w-0">
+          {/* Title and Price row */}
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-gray-800 font-bold text-sm truncate pr-2">{pkg.name}</h3>
+            <div className="flex items-center flex-shrink-0">
+              <span className="text-base font-extrabold text-gray-900">{pkg.price?.toLocaleString()}</span>
+              <span className="text-[#7acc00] font-bold text-[10px] ml-0.5">ETB</span>
             </div>
           </div>
 
-          {/* Features List - Vertical */}
-          <div className="mb-5 space-y-2">
-            {pkg.features?.slice(0, 3).map((feature, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-[#7acc00] flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-600">{feature}</span>
-              </div>
-            ))}
+          {/* Stats - 3 columns compact */}
+          <div className="grid grid-cols-3 gap-1 mb-1">
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Daily</div>
+              <div className="text-gray-800 font-bold text-[10px]">{pkg.dailyIncome || pkg.dailyEarnings} ETB</div>
+            </div>
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Cycle</div>
+              <div className="text-gray-800 font-bold text-[10px]">{pkg.cycleDays || 60}d</div>
+            </div>
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Total</div>
+              <div className="text-gray-800 font-bold text-[10px]">{(pkg.totalReturn || pkg.price * 0.09 * 60).toLocaleString()} ETB</div>
+            </div>
           </div>
 
-          {/* Invest Now Button - Gold 3D */}
+          {/* Invest Button - compact */}
           <GoldButton onClick={() => onSelect(pkg)}>
             Invest Now
           </GoldButton>
@@ -149,7 +117,7 @@ const MusicPackageCard = ({
   );
 };
 
-// Product Card Component for investment products - Vertical display
+// Product Card Component for investment products - Compact vertical display (half height)
 const ProductCard = ({ 
   level, 
   onInvest 
@@ -159,63 +127,56 @@ const ProductCard = ({
 }) => {
   return (
     <div 
-      className="w-full rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-200 mb-4"
+      className="w-full rounded-xl overflow-hidden shadow-md cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 bg-white border border-gray-200 mb-3"
       onClick={() => onInvest(level)}
     >
-      <div className="relative">
-        {/* Title - at top */}
-        <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-          <h3 className="text-gray-800 font-bold text-xl text-center">{level.name}</h3>
-        </div>
-
-        {/* Image - Full width */}
-        <div className="w-full">
-          <div className="relative w-full h-40 bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+      <div className="relative flex items-center p-3">
+        {/* Image - smaller */}
+        <div className="flex-shrink-0 w-16 h-16 mr-3">
+          <div className="w-full h-full bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
             {level.image_url ? (
               <img 
                 src={level.image_url} 
                 alt={level.name} 
-                className="w-full h-full object-contain p-4" 
+                className="w-full h-full object-contain p-1" 
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x150/e2e8e2/2d3a2d?text=Product';
                 }}
               />
             ) : (
-              <Package className="w-16 h-16 text-gray-400" />
+              <Package className="w-8 h-8 text-gray-400" />
             )}
           </div>
         </div>
 
-        {/* Price and Stats Section */}
-        <div className="p-5">
-          {/* Price with green ETB - centered */}
-          <div className="text-center mb-4">
-            <span className="text-3xl font-extrabold text-gray-900">{level.price.toLocaleString()}</span>
-            <span className="text-[#7acc00] font-bold text-base ml-1">ETB</span>
-          </div>
-
-          {/* Stats - 3 columns */}
-          <div className="grid grid-cols-3 gap-2 mb-5">
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Daily</div>
-              <div className="text-gray-800 font-bold text-base">{level.daily_income.toLocaleString()} <span className="text-[#7acc00] text-xs">ETB</span></div>
-            </div>
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Cycle</div>
-              <div className="text-gray-800 font-bold text-base">{level.cycle_days}d</div>
-            </div>
-            <div className="text-center bg-gray-50 py-3 rounded-lg">
-              <div className="text-gray-500 text-xs font-medium mb-1">Total</div>
-              <div className="text-gray-800 font-bold text-base">{(level.daily_income * level.cycle_days).toLocaleString()} ETB</div>
+        {/* Content - compact */}
+        <div className="flex-1 min-w-0">
+          {/* Title and Price row */}
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-gray-800 font-bold text-sm truncate pr-2">{level.name}</h3>
+            <div className="flex items-center flex-shrink-0">
+              <span className="text-base font-extrabold text-gray-900">{level.price?.toLocaleString()}</span>
+              <span className="text-[#7acc00] font-bold text-[10px] ml-0.5">ETB</span>
             </div>
           </div>
 
-          {/* Features - description text */}
-          <div className="mb-5 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-            {level.description || "Start earning daily income with this investment package."}
+          {/* Stats - 3 columns compact */}
+          <div className="grid grid-cols-3 gap-1 mb-1">
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Daily</div>
+              <div className="text-gray-800 font-bold text-[10px]">{level.daily_income?.toLocaleString()} <span className="text-[#7acc00] text-[8px]">ETB</span></div>
+            </div>
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Cycle</div>
+              <div className="text-gray-800 font-bold text-[10px]">{level.cycle_days}d</div>
+            </div>
+            <div className="text-center bg-gray-50 py-1 rounded">
+              <div className="text-gray-500 text-[8px] font-medium">Total</div>
+              <div className="text-gray-800 font-bold text-[10px]">{(level.daily_income * level.cycle_days).toLocaleString()} ETB</div>
+            </div>
           </div>
 
-          {/* Invest Now Button - Gold 3D */}
+          {/* Invest Button - compact */}
           <GoldButton onClick={() => onInvest(level)}>
             Invest Now
           </GoldButton>
@@ -225,7 +186,7 @@ const ProductCard = ({
   );
 };
 
-// P Series Products - Vertical stack
+// P Series Products - Vertical stack with compact cards
 const PSeriesProducts = ({ 
   levels, 
   onInvest,
@@ -253,7 +214,7 @@ const PSeriesProducts = ({
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3">
       {levels.map((level) => (
         <ProductCard
           key={level.id}
@@ -265,7 +226,7 @@ const PSeriesProducts = ({
   );
 };
 
-// B Series Products - Vertical stack
+// B Series Products - Vertical stack with compact cards
 const BSeriesProducts = ({ 
   levels, 
   onInvest,
@@ -293,7 +254,7 @@ const BSeriesProducts = ({
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3">
       {levels.map((level) => (
         <ProductCard
           key={level.id}
@@ -305,170 +266,15 @@ const BSeriesProducts = ({
   );
 };
 
-// VIP Music Packages - Vertical stack
+// VIP Music Packages - Using imported VIPPackages component
 const VIPMusicPackages = ({ 
   onSelect 
 }: { 
-  onSelect: (pkg: MusicPackage) => void;
+  onSelect: (pkg: any) => void;
 }) => {
-  const musicPackages: MusicPackage[] = [
-    {
-      id: 1,
-      name: "Starter Pack",
-      price: 500,
-      dailyIncome: 32.5,
-      cycleDays: 60,
-      totalReturn: 1950,
-      image: vip1,
-      badge: "NEW",
-      badgeColor: "bg-blue-500",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "10 hours daily listening limit",
-        "Access to basic music library"
-      ]
-    },
-    {
-      id: 2,
-      name: "Bronze",
-      price: 1000,
-      dailyIncome: 65,
-      cycleDays: 60,
-      totalReturn: 3900,
-      image: vip2,
-      badge: "BRONZE",
-      badgeColor: "bg-amber-700",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "20 hours daily listening limit",
-        "Standard audio quality",
-        "Email support"
-      ]
-    },
-    {
-      id: 3,
-      name: "Silver",
-      price: 2000,
-      dailyIncome: 94,
-      cycleDays: 60,
-      totalReturn: 5640,
-      image: vip3,
-      badge: "⭐ POPULAR",
-      badgeColor: "bg-purple-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Premium music library",
-        "Priority support",
-        "Create custom playlists"
-      ]
-    },
-    {
-      id: 4,
-      name: "Gold",
-      price: 3500,
-      dailyIncome: 140,
-      cycleDays: 60,
-      totalReturn: 8400,
-      image: vip4,
-      badge: "GOLD",
-      badgeColor: "bg-yellow-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Exclusive artist content",
-        "HD audio quality",
-        "VIP support 24/7",
-        "Download for offline"
-      ]
-    },
-    {
-      id: 5,
-      name: "Platinum",
-      price: 5000,
-      dailyIncome: 215,
-      cycleDays: 60,
-      totalReturn: 12900,
-      image: vip5,
-      badge: "PLATINUM",
-      badgeColor: "bg-indigo-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Unlimited music access",
-        "Lossless audio quality",
-        "Dedicated account manager",
-        "Artist meet & greet"
-      ]
-    },
-    {
-      id: 6,
-      name: "Diamond",
-      price: 7500,
-      dailyIncome: 320,
-      cycleDays: 60,
-      totalReturn: 19200,
-      image: vip6,
-      badge: "ELITE",
-      badgeColor: "bg-blue-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Exclusive concerts access",
-        "Personalized playlists",
-        "Artist meetups"
-      ]
-    },
-    {
-      id: 7,
-      name: "Royal",
-      price: 10000,
-      dailyIncome: 430,
-      cycleDays: 60,
-      totalReturn: 25800,
-      image: vip7,
-      badge: "ROYAL",
-      badgeColor: "bg-red-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Royal VIP events",
-        "Backstage passes",
-        "Limited edition merch"
-      ]
-    },
-    {
-      id: 8,
-      name: "Legend",
-      price: 15000,
-      dailyIncome: 650,
-      cycleDays: 60,
-      totalReturn: 39000,
-      image: vip8,
-      badge: "👑 LEGEND",
-      badgeColor: "bg-gradient-to-r from-purple-600 to-pink-600",
-      features: [
-        "Earn 0.05416 ETB per minute",
-        "24 hours daily listening limit",
-        "Lifetime membership",
-        "Personal manager",
-        "All-access pass",
-        "Exclusive merchandise"
-      ]
-    }
-  ];
-
-  return (
-    <div className="w-full space-y-4">
-      {musicPackages.map((pkg) => (
-        <MusicPackageCard
-          key={pkg.id}
-          pkg={pkg}
-          onSelect={onSelect}
-        />
-      ))}
-    </div>
-  );
+  // We're using the imported VIPPackages component directly
+  // This component will just pass through the selection
+  return <VIPPackages />;
 };
 
 const Earn = () => {
@@ -482,7 +288,7 @@ const Earn = () => {
   const [showHowToEarn, setShowHowToEarn] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<VipLevel | null>(null);
-  const [selectedMusicPackage, setSelectedMusicPackage] = useState<MusicPackage | null>(null);
+  const [selectedMusicPackage, setSelectedMusicPackage] = useState<any | null>(null);
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -518,7 +324,7 @@ const Earn = () => {
     setShowPurchaseModal(true);
   };
 
-  const openMusicPackageModal = (pkg: MusicPackage) => {
+  const openMusicPackageModal = (pkg: any) => {
     setSelectedMusicPackage(pkg);
     setShowMusicModal(true);
   };
@@ -664,7 +470,7 @@ const Earn = () => {
             <SeriesTabs activeSeries={activeSeries} onSeriesChange={setActiveSeries} />
           </div>
 
-          {/* Content based on active tab - All vertical stack */}
+          {/* Content based on active tab - All vertical stack with compact cards */}
           <div className="w-full">
             {activeSeries === 'P' && (
               <PSeriesProducts 
@@ -838,19 +644,19 @@ const Earn = () => {
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
                   <span className="text-xs sm:text-sm text-[#6b7b6b]">Price</span>
-                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.price.toLocaleString()} ETB</span>
+                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.price?.toLocaleString()} ETB</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
                   <span className="text-xs sm:text-sm text-[#6b7b6b]">Daily Income</span>
-                  <span className="font-bold text-sm sm:text-base text-[#7acc00]">{selectedMusicPackage.dailyIncome} ETB</span>
+                  <span className="font-bold text-sm sm:text-base text-[#7acc00]">{selectedMusicPackage.dailyIncome || selectedMusicPackage.dailyEarnings} ETB</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-[#e2e8e2]">
                   <span className="text-xs sm:text-sm text-[#6b7b6b]">Cycle Days</span>
-                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.cycleDays} Days</span>
+                  <span className="font-bold text-sm sm:text-base text-[#2d3a2d]">{selectedMusicPackage.cycleDays || 60} Days</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-xs sm:text-sm text-[#6b7b6b]">Total Return</span>
-                  <span className="font-bold text-base sm:text-lg text-[#2d3a2d]">{selectedMusicPackage.totalReturn.toLocaleString()} ETB</span>
+                  <span className="font-bold text-base sm:text-lg text-[#2d3a2d]">{(selectedMusicPackage.totalReturn || selectedMusicPackage.price * 0.09 * 60).toLocaleString()} ETB</span>
                 </div>
               </div>
 
