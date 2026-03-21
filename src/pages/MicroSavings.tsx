@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { ArrowLeft, PiggyBank, Calendar, Clock, TrendingUp, Shield, Zap, CheckCircle, AlertCircle, Plus, Minus, Percent, DollarSign, X } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
@@ -36,7 +36,7 @@ interface SavingsPreference {
 }
 
 const MicroSavings = () => {
-  const { user, profile, loading, refreshProfile } = useAuth();
+  const { user, profile, loading, refreshProfile, updateBalance, updateWithdrawableBalance } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   
@@ -46,13 +46,14 @@ const MicroSavings = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeposit, setShowDeposit] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'active' | 'completed'>('active');
+  const [updating, setUpdating] = useState(false);
   
   // Savings preferences
   const [preferences, setPreferences] = useState<SavingsPreference>({
     amount: 100,
     duration: 30,
     frequency: 'daily',
-    returnRate: 0.5 // 0.5% daily return
+    returnRate: 0.5
   });
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -120,136 +121,174 @@ const MicroSavings = () => {
   };
 
   const handleCreateSavings = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile || updating) return;
 
+    // Check MAIN BALANCE for deduction
     if (profile.balance < preferences.amount) {
-      setErrorMessage('Insufficient balance. Please deposit first.');
+      setErrorMessage('Insufficient main balance. Please deposit first.');
       setShowErrorModal(true);
       setShowDeposit(true);
       setShowCreateModal(false);
       return;
     }
 
+    setUpdating(true);
     setCreating(true);
 
-    const returns = calculateReturns();
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + preferences.duration);
+    try {
+      const returns = calculateReturns();
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + preferences.duration);
 
-    // Calculate next payout date based on frequency
-    const nextPayout = new Date();
-    switch(preferences.frequency) {
-      case 'daily':
-        nextPayout.setDate(nextPayout.getDate() + 1);
-        break;
-      case 'weekly':
-        nextPayout.setDate(nextPayout.getDate() + 7);
-        break;
-      case 'monthly':
-        nextPayout.setMonth(nextPayout.getMonth() + 1);
-        break;
-    }
+      const nextPayout = new Date();
+      switch(preferences.frequency) {
+        case 'daily':
+          nextPayout.setDate(nextPayout.getDate() + 1);
+          break;
+        case 'weekly':
+          nextPayout.setDate(nextPayout.getDate() + 7);
+          break;
+        case 'monthly':
+          nextPayout.setMonth(nextPayout.getMonth() + 1);
+          break;
+      }
 
-    // Create savings plan
-    const { data, error } = await supabase
-      .from('savings_plans')
-      .insert({
-        user_id: user.id,
-        amount: preferences.amount,
-        daily_return: returns.daily,
-        total_return: returns.total,
-        duration_days: preferences.duration,
-        return_frequency: preferences.frequency,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        next_payout_date: nextPayout.toISOString(),
-        status: 'active',
-        total_paid: 0
-      })
-      .select()
-      .single();
+      // Step 1: DEDUCT FROM MAIN BALANCE
+      const newBalance = profile.balance - preferences.amount;
+      await updateBalance(newBalance);
 
-    if (error) {
-      setErrorMessage('Failed to create savings plan. Please try again.');
-      setShowErrorModal(true);
-    } else if (data) {
-      // Deduct from balance
-      await supabase
-        .from('profiles')
-        .update({ balance: profile.balance - preferences.amount })
-        .eq('id', user.id);
+      // Step 2: Create savings plan
+      const { data, error } = await supabase
+        .from('savings_plans')
+        .insert({
+          user_id: user.id,
+          amount: preferences.amount,
+          daily_return: returns.daily,
+          total_return: returns.total,
+          duration_days: preferences.duration,
+          return_frequency: preferences.frequency,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          next_payout_date: nextPayout.toISOString(),
+          status: 'active',
+          total_paid: 0
+        })
+        .select()
+        .single();
 
-      setSuccessMessage(`Savings plan created successfully! You'll receive ${returns.daily.toFixed(2)} ETB ${preferences.frequency}`);
+      if (error) {
+        // Rollback: Refund the deducted amount if plan creation fails
+        await updateBalance(profile.balance);
+        throw new Error('Failed to create savings plan');
+      }
+      
+      // Step 3: Refresh profile to get updated balances
+      await refreshProfile();
+      
+      setSuccessMessage(`Savings plan created successfully! ${preferences.amount.toLocaleString()} ETB deducted from main balance. You'll receive ${returns.daily.toFixed(2)} ETB ${preferences.frequency}`);
       setShowSuccessModal(true);
       setShowCreateModal(false);
-      await refreshProfile();
+      
       await fetchSavingsPlans();
+      
+    } catch (err) {
+      console.error('Error creating savings:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setShowErrorModal(true);
+    } finally {
+      setCreating(false);
+      setUpdating(false);
     }
-
-    setCreating(false);
   };
 
   const handleCancelSavings = async (planId: string) => {
-    if (!user) return;
+    if (!user || updating) return;
+    
+    setUpdating(true);
 
-    const { error } = await supabase
-      .from('savings_plans')
-      .update({ status: 'cancelled' })
-      .eq('id', planId);
+    try {
+      const { error } = await supabase
+        .from('savings_plans')
+        .update({ status: 'cancelled' })
+        .eq('id', planId);
 
-    if (error) {
-      setErrorMessage('Failed to cancel savings plan.');
+      if (error) {
+        throw new Error('Failed to cancel savings plan');
+      } else {
+        setSuccessMessage('Savings plan cancelled successfully.');
+        setShowSuccessModal(true);
+        await fetchSavingsPlans();
+      }
+    } catch (err) {
+      console.error('Error cancelling savings:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to cancel savings plan');
       setShowErrorModal(true);
-    } else {
-      setSuccessMessage('Savings plan cancelled successfully.');
-      setShowSuccessModal(true);
-      await fetchSavingsPlans();
+    } finally {
+      setUpdating(false);
     }
   };
 
   const handleCollectReturn = async (plan: SavingsPlan) => {
-    if (!user || !profile) return;
+    if (!user || !profile || updating) return;
 
-    // Update total paid
-    const newTotalPaid = plan.total_paid + plan.daily_return;
-    
-    // Add to balance
-    await supabase
-      .from('profiles')
-      .update({ balance: profile.balance + plan.daily_return })
-      .eq('id', user.id);
+    setUpdating(true);
 
-    // Calculate next payout
-    const nextPayout = new Date(plan.next_payout_date);
-    switch(plan.return_frequency) {
-      case 'daily':
-        nextPayout.setDate(nextPayout.getDate() + 1);
-        break;
-      case 'weekly':
-        nextPayout.setDate(nextPayout.getDate() + 7);
-        break;
-      case 'monthly':
-        nextPayout.setMonth(nextPayout.getMonth() + 1);
-        break;
+    try {
+      const newTotalPaid = plan.total_paid + plan.daily_return;
+      
+      // Step 1: ADD TO WITHDRAWABLE BALANCE
+      const newWithdrawable = profile.withdrawable_balance + plan.daily_return;
+      await updateWithdrawableBalance(newWithdrawable);
+
+      // Step 2: Calculate next payout date
+      const nextPayout = new Date(plan.next_payout_date);
+      switch(plan.return_frequency) {
+        case 'daily':
+          nextPayout.setDate(nextPayout.getDate() + 1);
+          break;
+        case 'weekly':
+          nextPayout.setDate(nextPayout.getDate() + 7);
+          break;
+        case 'monthly':
+          nextPayout.setMonth(nextPayout.getMonth() + 1);
+          break;
+      }
+
+      // Step 3: Check if plan is completed
+      const status = newTotalPaid >= plan.total_return ? 'completed' : 'active';
+
+      // Step 4: Update savings plan
+      const { error: planError } = await supabase
+        .from('savings_plans')
+        .update({
+          total_paid: newTotalPaid,
+          next_payout_date: nextPayout.toISOString(),
+          status
+        })
+        .eq('id', plan.id);
+
+      if (planError) {
+        // Rollback: Remove the added withdrawable balance
+        await updateWithdrawableBalance(profile.withdrawable_balance);
+        throw new Error('Failed to update savings plan');
+      }
+
+      // Step 5: Refresh profile to get updated balances
+      await refreshProfile();
+      
+      setSuccessMessage(`${plan.daily_return.toFixed(2)} ETB added to withdrawable balance!`);
+      setShowSuccessModal(true);
+      
+      await fetchSavingsPlans();
+      
+    } catch (err) {
+      console.error('Error collecting return:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to collect return');
+      setShowErrorModal(true);
+    } finally {
+      setUpdating(false);
     }
-
-    // Check if plan is completed
-    const status = newTotalPaid >= plan.total_return ? 'completed' : 'active';
-
-    await supabase
-      .from('savings_plans')
-      .update({
-        total_paid: newTotalPaid,
-        next_payout_date: nextPayout.toISOString(),
-        status
-      })
-      .eq('id', plan.id);
-
-    setSuccessMessage(`${plan.daily_return.toFixed(2)} ETB collected successfully!`);
-    setShowSuccessModal(true);
-    await refreshProfile();
-    await fetchSavingsPlans();
   };
 
   const returns = calculateReturns();
@@ -264,7 +303,6 @@ const MicroSavings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
-      {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#7acc00]/10 to-[#B0FC38]/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-[#00c853]/10 to-[#7acc00]/10 rounded-full blur-3xl" />
       
@@ -289,21 +327,35 @@ const MicroSavings = () => {
           </div>
         </header>
 
-        {/* Balance Card */}
-        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-[#2d3a2d] to-[#1f2a1f] text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-white/80">Available Balance</span>
-            <Shield className="w-4 h-4 text-[#B0FC38]" />
+        {/* Balance Cards - Show both Main and Withdrawable */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-[#2d3a2d] to-[#1f2a1f] text-white shadow-lg">
+            <p className="text-xs text-white/70 mb-1">Main Balance</p>
+            <p className="text-lg font-bold">{profile.balance?.toLocaleString() || 0} ETB</p>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-bold">{profile?.balance?.toLocaleString() || 0} ETB</span>
-            <Button
-              onClick={() => setShowDeposit(true)}
-              className="bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-[#1f2a1f] font-semibold px-4 py-1.5 rounded-xl text-sm hover:shadow-lg hover:shadow-[#7acc00]/20 transition-all active:scale-95"
-            >
-              Deposit
-            </Button>
+          
+          <div className="p-3 rounded-xl bg-gradient-to-br from-[#7acc00] to-[#B0FC38] text-white shadow-lg">
+            <p className="text-xs text-white/70 mb-1">Withdrawable</p>
+            <p className="text-lg font-bold">{profile.withdrawable_balance?.toLocaleString() || 0} ETB</p>
           </div>
+        </div>
+
+        {/* Deposit Button Row */}
+        <div className="mb-4">
+          <Button
+            onClick={() => setShowDeposit(true)}
+            className="w-full bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-[#1f2a1f] font-semibold py-2.5 rounded-xl text-sm hover:shadow-lg transition-all"
+          >
+            Deposit Funds
+          </Button>
+        </div>
+
+        {/* Info Box explaining balance usage */}
+        <div className="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200">
+          <p className="text-xs text-blue-800">
+            💡 <span className="font-semibold">How it works:</span> Savings deducted from <span className="font-bold">Main Balance</span>. 
+            Daily returns added to <span className="font-bold">Withdrawable Balance</span>.
+          </p>
         </div>
 
         {/* Hero Banner */}
@@ -408,7 +460,6 @@ const MicroSavings = () => {
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-[#6b7b6b]">Progress</span>
@@ -426,7 +477,8 @@ const MicroSavings = () => {
                     {canCollect && saving.total_paid < saving.total_return && (
                       <button
                         onClick={() => handleCollectReturn(saving)}
-                        className="flex-1 bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-white py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg transition-all active:scale-95"
+                        disabled={updating}
+                        className="flex-1 bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-white py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
                       >
                         Collect {saving.daily_return.toFixed(2)} ETB
                       </button>
@@ -441,7 +493,8 @@ const MicroSavings = () => {
                     )}
                     <button
                       onClick={() => handleCancelSavings(saving.id)}
-                      className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all"
+                      disabled={updating}
+                      className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -507,6 +560,7 @@ const MicroSavings = () => {
                   <button
                     onClick={() => setPreferences({...preferences, amount: Math.max(100, preferences.amount - 50)})}
                     className="w-10 h-10 rounded-xl bg-[#f1f5f1] flex items-center justify-center hover:bg-[#e2e8e2]"
+                    disabled={creating}
                   >
                     <Minus className="w-4 h-4 text-[#2d3a2d]" />
                   </button>
@@ -517,14 +571,18 @@ const MicroSavings = () => {
                     className="flex-1 text-center py-2 border border-[#e2e8e2] rounded-xl font-bold text-[#2d3a2d]"
                     min="100"
                     step="50"
+                    disabled={creating}
                   />
                   <button
                     onClick={() => setPreferences({...preferences, amount: preferences.amount + 50})}
                     className="w-10 h-10 rounded-xl bg-[#f1f5f1] flex items-center justify-center hover:bg-[#e2e8e2]"
+                    disabled={creating}
                   >
                     <Plus className="w-4 h-4 text-[#2d3a2d]" />
                   </button>
                 </div>
+                <p className="text-xs text-red-600 mt-1">⚠️ Deducted from Main Balance</p>
+                <p className="text-xs text-green-600 mt-1">Current Main Balance: {profile.balance?.toLocaleString()} ETB</p>
               </div>
 
               {/* Duration Selector */}
@@ -534,6 +592,7 @@ const MicroSavings = () => {
                   <button
                     onClick={() => setPreferences({...preferences, duration: Math.max(7, preferences.duration - 7)})}
                     className="w-10 h-10 rounded-xl bg-[#f1f5f1] flex items-center justify-center hover:bg-[#e2e8e2]"
+                    disabled={creating}
                   >
                     <Minus className="w-4 h-4 text-[#2d3a2d]" />
                   </button>
@@ -544,10 +603,12 @@ const MicroSavings = () => {
                     className="flex-1 text-center py-2 border border-[#e2e8e2] rounded-xl font-bold text-[#2d3a2d]"
                     min="7"
                     step="7"
+                    disabled={creating}
                   />
                   <button
                     onClick={() => setPreferences({...preferences, duration: preferences.duration + 7})}
                     className="w-10 h-10 rounded-xl bg-[#f1f5f1] flex items-center justify-center hover:bg-[#e2e8e2]"
+                    disabled={creating}
                   >
                     <Plus className="w-4 h-4 text-[#2d3a2d]" />
                   </button>
@@ -562,16 +623,18 @@ const MicroSavings = () => {
                     <button
                       key={freq}
                       onClick={() => setPreferences({...preferences, frequency: freq})}
+                      disabled={creating}
                       className={`py-2 rounded-xl text-sm font-semibold transition-all ${
                         preferences.frequency === freq
                           ? 'bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-white'
                           : 'bg-[#f1f5f1] text-[#6b7b6b] hover:bg-[#e2e8e2]'
-                      }`}
+                      } disabled:opacity-50`}
                     >
                       {freq.charAt(0).toUpperCase() + freq.slice(1)}
                     </button>
                   ))}
                 </div>
+                <p className="text-xs text-blue-600 mt-1">💰 Returns added to Withdrawable Balance</p>
               </div>
 
               {/* Returns Calculator */}
@@ -605,7 +668,7 @@ const MicroSavings = () => {
                 </Button>
                 <Button
                   onClick={handleCreateSavings}
-                  disabled={creating || preferences.amount > profile.balance}
+                  disabled={creating || preferences.amount > (profile?.balance || 0)}
                   className="flex-1 bg-gradient-to-r from-[#7acc00] to-[#B0FC38] text-[#1f2a1f] font-semibold hover:shadow-lg disabled:opacity-50"
                 >
                   {creating ? (
@@ -619,9 +682,9 @@ const MicroSavings = () => {
                 </Button>
               </div>
 
-              {preferences.amount > profile.balance && (
+              {preferences.amount > (profile?.balance || 0) && (
                 <p className="text-xs text-red-500 text-center mt-3">
-                  Insufficient balance. Please deposit first.
+                  Insufficient main balance. Please deposit first.
                 </p>
               )}
             </div>

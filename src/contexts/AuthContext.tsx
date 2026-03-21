@@ -25,6 +25,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateBalance: (newBalance: number) => Promise<void>;
+  updateWithdrawableBalance: (newWithdrawableBalance: number) => Promise<void>;
+  updateBothBalances: (mainBalance: number, withdrawableBalance: number) => Promise<void>;
   updateVipLevel: (level: number) => Promise<void>;
 }
 
@@ -53,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!error && data) {
       setProfile(data as Profile);
+    } else if (error) {
+      console.error('Error fetching profile:', error);
     }
   };
 
@@ -62,16 +66,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Update only main balance
   const updateBalance = async (newBalance: number) => {
     if (!user) return;
     
     const { error } = await supabase
       .from('profiles')
-      .update({ balance: newBalance, updated_at: new Date().toISOString() })
+      .update({ 
+        balance: newBalance, 
+        updated_at: new Date().toISOString() 
+      })
       .eq('user_id', user.id);
 
     if (!error) {
       setProfile(prev => prev ? { ...prev, balance: newBalance } : null);
+    } else {
+      console.error('Error updating balance:', error);
+    }
+  };
+
+  // Update only withdrawable balance
+  const updateWithdrawableBalance = async (newWithdrawableBalance: number) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        withdrawable_balance: newWithdrawableBalance, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setProfile(prev => prev ? { ...prev, withdrawable_balance: newWithdrawableBalance } : null);
+    } else {
+      console.error('Error updating withdrawable balance:', error);
+    }
+  };
+
+  // Update both balances at once (more efficient)
+  const updateBothBalances = async (mainBalance: number, withdrawableBalance: number) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        balance: mainBalance,
+        withdrawable_balance: withdrawableBalance,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setProfile(prev => prev ? { 
+        ...prev, 
+        balance: mainBalance,
+        withdrawable_balance: withdrawableBalance 
+      } : null);
+    } else {
+      console.error('Error updating balances:', error);
     }
   };
 
@@ -80,11 +133,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const { error } = await supabase
       .from('profiles')
-      .update({ current_vip_level: level, updated_at: new Date().toISOString() })
+      .update({ 
+        current_vip_level: level, 
+        updated_at: new Date().toISOString() 
+      })
       .eq('user_id', user.id);
 
     if (!error) {
       setProfile(prev => prev ? { ...prev, current_vip_level: level } : null);
+    } else {
+      console.error('Error updating VIP level:', error);
     }
   };
 
@@ -182,6 +240,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signOut,
       refreshProfile,
       updateBalance,
+      updateWithdrawableBalance,
+      updateBothBalances,
       updateVipLevel,
     }}>
       {children}
