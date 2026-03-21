@@ -8,7 +8,7 @@ import { BottomNavigation } from '@/components/BottomNavigation';
 import SeriesTabs from '@/components/SeriesTabs';
 import VIPPackages from '@/pages/VIPPackages';
 import MicroSavings from '@/pages/MicroSavings';
-import { ArrowLeft, Play, X, Headset, Sparkles, TrendingUp, Clock, Shield, Zap, Coins, CheckCircle, AlertCircle, Package, ChevronLeft, ChevronRight, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Play, X, Headset, Sparkles, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/Spinner';
 import { SuccessModal } from '@/components/SuccessModal';
@@ -33,7 +33,7 @@ const GoldButton = ({ onClick, children, disabled = false, loading = false }: { 
   <button
     onClick={onClick}
     disabled={disabled || loading}
-    className={`w-full py-2.5 bg-gradient-to-b from-[#FFD700] to-[#FDB931] rounded-lg text-[#1a2a1a] font-semibold text-sm shadow-[0_4px_0_0_#b37b00] hover:shadow-[0_2px_0_0_#b37b00] hover:translate-y-0.5 active:translate-y-1 active:shadow-[0_1px_0_0_#b37b00] transition-all duration-150 border border-[#FFE55C] disabled:opacity-50 disabled:cursor-not-allowed`}
+    className={`w-full py-2 bg-gradient-to-b from-[#FFD700] to-[#FDB931] rounded-lg text-[#1a2a1a] font-semibold text-xs shadow-[0_4px_0_0_#b37b00] hover:shadow-[0_2px_0_0_#b37b00] hover:translate-y-0.5 active:translate-y-1 active:shadow-[0_1px_0_0_#b37b00] transition-all duration-150 border border-[#FFE55C] disabled:opacity-50 disabled:cursor-not-allowed`}
   >
     {loading ? (
       <div className="flex items-center justify-center gap-2">
@@ -46,7 +46,7 @@ const GoldButton = ({ onClick, children, disabled = false, loading = false }: { 
   </button>
 );
 
-// Redesigned Product Card Component - Full width image on top, increased height
+// Redesigned Product Card Component - Full width image on top, reduced height
 const ProductCard = ({ 
   level, 
   onInvest 
@@ -59,8 +59,8 @@ const ProductCard = ({
       className="w-full max-w-[280px] mx-auto rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-100 mb-5"
       onClick={() => onInvest(level)}
     >
-      {/* Image Section - Full width above half of the box */}
-      <div className="relative w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+      {/* Image Section - Reduced height */}
+      <div className="relative w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         {level.image_url ? (
           <img 
             src={level.image_url} 
@@ -72,77 +72,68 @@ const ProductCard = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-16 h-16 text-gray-400" />
+            <Package className="w-12 h-12 text-gray-400" />
           </div>
         )}
         
         {/* Price Badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] px-3 py-1 rounded-full font-bold text-sm shadow-lg">
+        <div className="absolute top-2 right-2 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] px-2 py-0.5 rounded-full font-bold text-xs shadow-lg">
           {level.price?.toLocaleString()} ETB
         </div>
         
         {/* Series Badge */}
-        <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full font-semibold text-xs">
+        <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full font-semibold text-[10px]">
           {level.series} Series
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-4">
+      {/* Content Section - Reduced padding */}
+      <div className="p-3">
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-800 mb-2 text-center">{level.name}</h3>
+        <h3 className="text-base font-bold text-gray-800 mb-1 text-center">{level.name}</h3>
         
         {/* Description if available */}
         {level.description && (
-          <p className="text-xs text-gray-500 text-center mb-3 line-clamp-2">{level.description}</p>
+          <p className="text-[10px] text-gray-500 text-center mb-2 line-clamp-1">{level.description}</p>
         )}
         
-        {/* Stats - Styled cards with different colors */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        {/* Stats - No icons, smaller text */}
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
           {/* Daily Income Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-2 text-center border border-green-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="w-3 h-3 text-green-600" />
-              <span className="text-[10px] font-semibold text-green-700 uppercase">Daily</span>
-            </div>
-            <div className="text-base font-bold text-green-700">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-1.5 text-center border border-green-200">
+            <div className="text-[9px] font-semibold text-green-700 uppercase mb-0.5">Daily</div>
+            <div className="text-sm font-bold text-green-700">
               {level.daily_income?.toLocaleString()}
             </div>
-            <div className="text-[9px] text-green-600 font-medium">ETB</div>
+            <div className="text-[8px] text-green-600 font-medium">ETB</div>
           </div>
           
           {/* Cycle Days Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-2 text-center border border-blue-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className="w-3 h-3 text-blue-600" />
-              <span className="text-[10px] font-semibold text-blue-700 uppercase">Cycle</span>
-            </div>
-            <div className="text-base font-bold text-blue-700">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-1.5 text-center border border-blue-200">
+            <div className="text-[9px] font-semibold text-blue-700 uppercase mb-0.5">Cycle</div>
+            <div className="text-sm font-bold text-blue-700">
               {level.cycle_days}
             </div>
-            <div className="text-[9px] text-blue-600 font-medium">Days</div>
+            <div className="text-[8px] text-blue-600 font-medium">Days</div>
           </div>
           
           {/* Total Return Card */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-2 text-center border border-purple-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Coins className="w-3 h-3 text-purple-600" />
-              <span className="text-[10px] font-semibold text-purple-700 uppercase">Total</span>
-            </div>
-            <div className="text-base font-bold text-purple-700">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-1.5 text-center border border-purple-200">
+            <div className="text-[9px] font-semibold text-purple-700 uppercase mb-0.5">Total</div>
+            <div className="text-sm font-bold text-purple-700">
               {(level.daily_income * level.cycle_days).toLocaleString()}
             </div>
-            <div className="text-[9px] text-purple-600 font-medium">ETB</div>
+            <div className="text-[8px] text-purple-600 font-medium">ETB</div>
           </div>
         </div>
 
-        {/* ROI Indicator */}
-        <div className="mb-4 p-2 bg-gray-50 rounded-lg text-center border border-gray-100">
-          <span className="text-xs text-gray-600">ROI: </span>
-          <span className="text-sm font-bold text-green-600">
+        {/* ROI Indicator - Smaller */}
+        <div className="mb-3 p-1.5 bg-gray-50 rounded-lg text-center border border-gray-100">
+          <span className="text-[9px] text-gray-600">ROI: </span>
+          <span className="text-xs font-bold text-green-600">
             {((level.daily_income * level.cycle_days / level.price) * 100).toFixed(0)}%
           </span>
-          <span className="text-xs text-gray-500 ml-1">total return</span>
+          <span className="text-[8px] text-gray-500 ml-0.5">return</span>
         </div>
 
         {/* Invest Button */}
@@ -167,8 +158,8 @@ const MusicPackageCard = ({
       className="w-full max-w-[280px] mx-auto rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 bg-white border border-gray-100 mb-5"
       onClick={() => onSelect(pkg)}
     >
-      {/* Image Section - Full width above half of the box */}
-      <div className="relative w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+      {/* Image Section - Reduced height */}
+      <div className="relative w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         <img 
           src={pkg.image} 
           alt={pkg.name} 
@@ -177,70 +168,61 @@ const MusicPackageCard = ({
         
         {/* Badge */}
         {pkg.badge && (
-          <div className="absolute top-3 left-3">
-            <div className={`${pkg.badgeColor} text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg`}>
+          <div className="absolute top-2 left-2">
+            <div className={`${pkg.badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg`}>
               {pkg.badge}
             </div>
           </div>
         )}
         
         {/* Price Badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] px-3 py-1 rounded-full font-bold text-sm shadow-lg">
+        <div className="absolute top-2 right-2 bg-gradient-to-r from-[#FFD700] to-[#FDB931] text-[#1a2a1a] px-2 py-0.5 rounded-full font-bold text-xs shadow-lg">
           {pkg.price?.toLocaleString()} ETB
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-4">
+      {/* Content Section - Reduced padding */}
+      <div className="p-3">
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">{pkg.name}</h3>
+        <h3 className="text-base font-bold text-gray-800 mb-1 text-center">{pkg.name}</h3>
         
-        {/* Stats - Styled cards */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        {/* Stats - No icons, smaller text */}
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
           {/* Daily Income Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-2 text-center border border-green-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="w-3 h-3 text-green-600" />
-              <span className="text-[10px] font-semibold text-green-700 uppercase">Daily</span>
-            </div>
-            <div className="text-base font-bold text-green-700">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-1.5 text-center border border-green-200">
+            <div className="text-[9px] font-semibold text-green-700 uppercase mb-0.5">Daily</div>
+            <div className="text-sm font-bold text-green-700">
               {pkg.dailyIncome || pkg.dailyEarnings}
             </div>
-            <div className="text-[9px] text-green-600 font-medium">ETB</div>
+            <div className="text-[8px] text-green-600 font-medium">ETB</div>
           </div>
           
           {/* Cycle Days Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-2 text-center border border-blue-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className="w-3 h-3 text-blue-600" />
-              <span className="text-[10px] font-semibold text-blue-700 uppercase">Cycle</span>
-            </div>
-            <div className="text-base font-bold text-blue-700">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-1.5 text-center border border-blue-200">
+            <div className="text-[9px] font-semibold text-blue-700 uppercase mb-0.5">Cycle</div>
+            <div className="text-sm font-bold text-blue-700">
               {pkg.cycleDays || 60}
             </div>
-            <div className="text-[9px] text-blue-600 font-medium">Days</div>
+            <div className="text-[8px] text-blue-600 font-medium">Days</div>
           </div>
           
           {/* Total Return Card */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-2 text-center border border-purple-200">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Coins className="w-3 h-3 text-purple-600" />
-              <span className="text-[10px] font-semibold text-purple-700 uppercase">Total</span>
-            </div>
-            <div className="text-base font-bold text-purple-700">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-1.5 text-center border border-purple-200">
+            <div className="text-[9px] font-semibold text-purple-700 uppercase mb-0.5">Total</div>
+            <div className="text-sm font-bold text-purple-700">
               {(pkg.totalReturn || pkg.price * 0.09 * 60).toLocaleString()}
             </div>
-            <div className="text-[9px] text-purple-600 font-medium">ETB</div>
+            <div className="text-[8px] text-purple-600 font-medium">ETB</div>
           </div>
         </div>
 
-        {/* ROI Indicator */}
-        <div className="mb-4 p-2 bg-gray-50 rounded-lg text-center border border-gray-100">
-          <span className="text-xs text-gray-600">ROI: </span>
-          <span className="text-sm font-bold text-green-600">
+        {/* ROI Indicator - Smaller */}
+        <div className="mb-3 p-1.5 bg-gray-50 rounded-lg text-center border border-gray-100">
+          <span className="text-[9px] text-gray-600">ROI: </span>
+          <span className="text-xs font-bold text-green-600">
             {(((pkg.dailyIncome || pkg.dailyEarnings) * (pkg.cycleDays || 60) / pkg.price) * 100).toFixed(0)}%
           </span>
-          <span className="text-xs text-gray-500 ml-1">total return</span>
+          <span className="text-[8px] text-gray-500 ml-0.5">return</span>
         </div>
 
         {/* Invest Button */}
